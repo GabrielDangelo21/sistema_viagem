@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  
+  workspaces Workspace[]
+  fileMeta   FileMeta[]
+}
+
+model Workspace {
+  id          String   @id @default(uuid())
+  name        String
+  ownerUserId String
+  planId      String // "free" | "pro" | "family"
+  createdAt   DateTime @default(now())
+
+  owner User   @relation(fields: [ownerUserId], references: [id])
+  trips Trip[]
+  fileMeta FileMeta[]
+  
+  @@index([ownerUserId])
+}
+
+model Trip {
+  id          String   @id @default(uuid())
+  workspaceId String
+  name        String
+  destination String
+  startDate   String // ISO_DATE
+  endDate     String // ISO_DATE
+  coverImageUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  itineraryDays ItineraryDay[]
+  reservations  Reservation[]
+  
+  // FileMeta linked to Trip (e.g. cover image or documents not specific to res/activity)
+  // The contract implies FileMeta can be linked, but the relation field on Trip isn't explicitly detailed in the entity list
+  // However, Cascade Delete rule says "DELETE Trip apaga... FileMeta vinculados".
+  // So we need a relation.
+  fileMeta FileMeta[]
+
+  @@index([workspaceId])
+}
+
+model ItineraryDay {
+  id        String   @id @default(uuid())
+  tripId    String
+  date      String // ISO_DATE
+  title     String?
+  createdAt DateTime @default(now())
+
+  trip       Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  activities Activity[]
+
+  @@unique([tripId, date])
+  @@index([tripId])
+}
+
+model Activity {
+  id           String   @id @default(uuid())
+  dayId        String
+  title        String
+  timeStart    String? // TIME_HH_MM
+  timeEnd      String? // TIME_HH_MM
+  locationName String?
+  address      String?
+  mapUrl       String?
+  cost         Float?
+  currency     String?
+  notes        String?
+  orderIndex   Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  day      ItineraryDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  fileMeta FileMeta[]
+
+  @@index([dayId])
+}
+
+enum ReservationType {
+  flight
+  hotel
+  car
+  train
+  bus
+  restaurant
+  tour
+  other
+}
+
+enum ReservationStatus {
+  confirmed
+  pending
+  canceled
+}
+
+model Reservation {
+  id               String            @id @default(uuid())
+  tripId           String
+  type             ReservationType
+  title            String
+  provider         String?
+  confirmationCode String?
+  startDateTime    DateTime // ISO_DATETIME
+  endDateTime      DateTime? // ISO_DATETIME
+  address          String?
+  mapUrl           String?
+  price            Float?
+  currency         String
+  status           ReservationStatus
+  attachmentFileId String?
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  trip     Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  fileMeta FileMeta[]
+
+  @@index([tripId])
+  @@index([startDateTime])
+}
+
+model FileMeta {
+  id            String   @id @default(uuid())
+  workspaceId   String
+  ownerUserId   String
+  path          String
+  mimeType      String
+  sizeBytes     Int
+  originalName  String
+  createdAt     DateTime @default(now())
+  
+  // Optional relations for cascade delete / context
+  tripId        String?
+  activityId    String?
+  reservationId String?
+
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
+  user        User         @relation(fields: [ownerUserId], references: [id])
+  trip        Trip?        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  activity    Activity?    @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([ownerUserId])
+}
