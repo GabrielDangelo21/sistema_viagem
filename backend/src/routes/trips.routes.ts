@@ -11,7 +11,7 @@ export async function tripsRoutes(app: FastifyInstance) {
     // List Trips
     zApp.get('/', async (request) => {
         const { activeWorkspace } = request;
-        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'No workspace', 401);
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const trips = await app.prisma.trip.findMany({
             where: { workspaceId: activeWorkspace.id },
@@ -31,16 +31,22 @@ export async function tripsRoutes(app: FastifyInstance) {
             body: z.object({
                 name: z.string().min(1),
                 destination: z.string().min(1),
-                startDate: z.string().refine(isValidIsoDate, 'Invalid ISO Date'),
-                endDate: z.string().refine(isValidIsoDate, 'Invalid ISO Date'),
+                startDate: z.string().refine(isValidIsoDate, 'Data inválida (ISO Date)'),
+                endDate: z.string().refine(isValidIsoDate, 'Data inválida (ISO Date)'),
                 coverImageUrl: z.string().optional(),
             })
         }
     }, async (request) => {
         const { activeWorkspace } = request;
-        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'No workspace', 401);
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const { name, destination, startDate, endDate, coverImageUrl } = request.body;
+
+        // Validation: endDate >= startDate
+        if (endDate < startDate) {
+            throw new ApiError('VALIDATION_ERROR', 'A data de término deve ser posterior ou igual à data de início');
+        }
+
         const today = new Date().toISOString().split('T')[0] as string;
 
         // Check Plan Limits
@@ -54,7 +60,7 @@ export async function tripsRoutes(app: FastifyInstance) {
             });
 
             if (activeTripsCount >= 2) {
-                throw new ApiError('PLAN_LIMIT_REACHED', 'Free plan limited to 2 active trips', 403);
+                throw new ApiError('PLAN_LIMIT_REACHED', 'Plano gratuito limitado a 2 viagens ativas', 403);
             }
         }
 
@@ -100,15 +106,15 @@ export async function tripsRoutes(app: FastifyInstance) {
     }, async (request) => {
         const { id } = request.params;
         const { activeWorkspace } = request;
-        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'No workspace', 401);
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const trip = await app.prisma.trip.findUnique({
             where: { id },
             include: { itineraryDays: { include: { activities: true } } }
         });
 
-        if (!trip) throw new ApiError('NOT_FOUND', 'Trip not found', 404);
-        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Access denied', 403);
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         return { ...trip, status: deriveTripStatus(trip.startDate, trip.endDate) };
     });
@@ -128,13 +134,21 @@ export async function tripsRoutes(app: FastifyInstance) {
     }, async (request) => {
         const { id } = request.params;
         const { activeWorkspace } = request;
-        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'No workspace', 401);
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const oldTrip = await app.prisma.trip.findUnique({ where: { id } });
-        if (!oldTrip) throw new ApiError('NOT_FOUND', 'Trip not found', 404);
-        if (oldTrip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Access denied', 403);
+        if (!oldTrip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+        if (oldTrip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         const { startDate, endDate, name, destination, coverImageUrl } = request.body;
+
+        // Validation: endDate >= startDate (considering updates)
+        const effectiveStart = startDate || oldTrip.startDate;
+        const effectiveEnd = endDate || oldTrip.endDate;
+
+        if (effectiveEnd < effectiveStart) {
+            throw new ApiError('VALIDATION_ERROR', 'A data de término deve ser posterior ou igual à data de início');
+        }
 
         let shouldRegenerateDays = false;
         if ((startDate && startDate !== oldTrip.startDate) || (endDate && endDate !== oldTrip.endDate)) {
@@ -153,15 +167,12 @@ export async function tripsRoutes(app: FastifyInstance) {
         });
 
         if (shouldRegenerateDays) {
-            const newStart = startDate || oldTrip.startDate;
-            const newEnd = endDate || oldTrip.endDate;
-
             // Delete old days (cascade deletes activities)
             await app.prisma.itineraryDay.deleteMany({ where: { tripId: id } });
 
             // Create new days
-            const s = new Date(newStart);
-            const e = new Date(newEnd);
+            const s = new Date(effectiveStart);
+            const e = new Date(effectiveEnd);
             const diff = Math.ceil(Math.abs(e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
             const days = Array.from({ length: diff }).map((_, i) => {
@@ -187,14 +198,14 @@ export async function tripsRoutes(app: FastifyInstance) {
     }, async (request) => {
         const { id } = request.params;
         const { activeWorkspace } = request;
-        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'No workspace', 401);
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const trip = await app.prisma.trip.findUnique({ where: { id } });
-        if (!trip) throw new ApiError('NOT_FOUND', 'Trip not found', 404);
-        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Access denied', 403);
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         await app.prisma.trip.delete({ where: { id } });
 
-        return { message: 'Trip deleted' };
+        return { message: 'Viagem deletada' };
     });
 }

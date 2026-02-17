@@ -21,8 +21,8 @@ export async function reservationsRoutes(app: FastifyInstance) {
                 title: z.string().min(1),
                 type: ReservationTypeEnum,
                 status: ReservationStatusEnum,
-                startDateTime: z.string().refine(isValidIsoDateTime, 'Invalid ISO DateTime'),
-                endDateTime: z.string().refine(isValidIsoDateTime, 'Invalid ISO DateTime').optional(),
+                startDateTime: z.string().refine(isValidIsoDateTime, 'Formato de data inválido (ISO DateTime)'),
+                endDateTime: z.string().refine(isValidIsoDateTime, 'Formato de data inválido (ISO DateTime)').optional(),
                 provider: z.string().optional(),
                 confirmationCode: z.string().optional(),
                 address: z.string().optional(),
@@ -34,7 +34,7 @@ export async function reservationsRoutes(app: FastifyInstance) {
         }
     }, async (request) => {
         const { activeWorkspace } = request;
-        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'No workspace', 401);
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const { tripId, startDateTime, endDateTime, ...data } = request.body;
 
@@ -43,12 +43,12 @@ export async function reservationsRoutes(app: FastifyInstance) {
             where: { id: tripId }
         });
 
-        if (!trip) throw new ApiError('NOT_FOUND', 'Trip not found', 404);
-        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Access denied', 403);
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         // Validation: end >= start
         if (endDateTime && startDateTime > endDateTime) {
-            throw new ApiError('VALIDATION_ERROR', 'endDateTime must be after startDateTime', 400);
+            throw new ApiError('VALIDATION_ERROR', 'A data de término deve ser posterior à data de início', 400);
         }
 
         const reservation = await app.prisma.reservation.create({
@@ -83,15 +83,15 @@ export async function reservationsRoutes(app: FastifyInstance) {
     }, async (request) => {
         const { id } = request.params;
         const { activeWorkspace } = request;
-        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'No workspace', 401);
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const reservation = await app.prisma.reservation.findUnique({
             where: { id },
             include: { trip: true }
         });
 
-        if (!reservation) throw new ApiError('NOT_FOUND', 'Reservation not found', 404);
-        if (reservation.trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Access denied', 403);
+        if (!reservation) throw new ApiError('NOT_FOUND', 'Reserva não encontrada', 404);
+        if (reservation.trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         const { startDateTime, endDateTime, ...data } = request.body;
 
@@ -100,7 +100,7 @@ export async function reservationsRoutes(app: FastifyInstance) {
         const newEnd = endDateTime !== undefined ? endDateTime : reservation.endDateTime;
 
         if (newEnd && newStart > newEnd) {
-            throw new ApiError('VALIDATION_ERROR', 'endDateTime must be after startDateTime', 400);
+            throw new ApiError('VALIDATION_ERROR', 'A data de término deve ser posterior à data de início', 400);
         }
 
         const updated = await app.prisma.reservation.update({
@@ -121,18 +121,18 @@ export async function reservationsRoutes(app: FastifyInstance) {
     }, async (request) => {
         const { id } = request.params;
         const { activeWorkspace } = request;
-        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'No workspace', 401);
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const reservation = await app.prisma.reservation.findUnique({
             where: { id },
             include: { trip: true }
         });
 
-        if (!reservation) throw new ApiError('NOT_FOUND', 'Reservation not found', 404);
-        if (reservation.trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Access denied', 403);
+        if (!reservation) throw new ApiError('NOT_FOUND', 'Reserva não encontrada', 404);
+        if (reservation.trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         await app.prisma.reservation.delete({ where: { id } });
 
-        return { message: 'Reservation deleted' };
+        return { message: 'Reserva deletada' };
     });
 }

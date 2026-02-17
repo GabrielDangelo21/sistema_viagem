@@ -13,7 +13,7 @@ export async function authRoutes(app: FastifyInstance) {
 
         if (!jwtUser) {
             // Should be caught by authenticate hook, but just in case
-            return reply.status(401).send({ message: 'Unauthorized' });
+            return reply.status(401).send({ message: 'Não autorizado' });
         }
 
         // Create User + Workspace if they don't exist

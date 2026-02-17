@@ -25,7 +25,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
         }
     }, async (request) => {
         const { activeWorkspace } = request;
-        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'No workspace', 401);
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const { dayId, ...data } = request.body;
 
@@ -35,9 +35,9 @@ export async function activitiesRoutes(app: FastifyInstance) {
             include: { trip: true }
         });
 
-        if (!day) throw new ApiError('NOT_FOUND', 'Day not found', 404);
+        if (!day) throw new ApiError('NOT_FOUND', 'Dia não encontrado', 404);
         if (day.trip.workspaceId !== activeWorkspace.id) {
-            throw new ApiError('FORBIDDEN', 'Access denied', 403);
+            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
         }
 
         const activity = await app.prisma.activity.create({

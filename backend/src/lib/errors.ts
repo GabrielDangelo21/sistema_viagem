@@ -35,7 +35,7 @@ export function errorHandler(error: Error, request: FastifyRequest, reply: Fasti
     if (error instanceof ZodError) {
         return reply.status(400).send({
             code: 'VALIDATION_ERROR',
-            message: 'Validation error',
+            message: 'Erro de validação',
             details: { issues: error.issues }
         });
     }
@@ -45,7 +45,7 @@ export function errorHandler(error: Error, request: FastifyRequest, reply: Fasti
         if (error.code === 'P2002') {
             return reply.status(409).send({
                 code: 'VALIDATION_ERROR',
-                message: 'Unique constraint violation',
+                message: 'Violação de restrição única (dados duplicados)',
                 details: { fields: error.meta?.target }
             });
         }
@@ -55,7 +55,7 @@ export function errorHandler(error: Error, request: FastifyRequest, reply: Fasti
 
     return reply.status(500).send({
         code: 'INTERNAL_ERROR',
-        message: 'Internal server error',
+        message: 'Erro interno do servidor',
         details: {}
     });
 }
