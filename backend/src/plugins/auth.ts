@@ -55,15 +55,27 @@ export default fp(async (fastify, opts) => {
             });
             return publicKey;
         },
-        sign: { algorithm: 'RS256' }, // Default for signing (not used here but good practice)
-        verify: { allowedIss: [SUPABASE_URL], algorithms: ['RS256', 'ES256', 'HS256', 'EdDSA'] }
+        sign: { algorithm: 'RS256' },
+        verify: {
+            allowedIss: [SUPABASE_URL, `${SUPABASE_URL}/auth/v1`],
+            algorithms: ['RS256', 'ES256', 'HS256', 'EdDSA']
+        }
     });
 
     fastify.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
         try {
+            const token = request.headers.authorization?.replace(/^Bearer /i, '');
+            if (token) {
+                const decoded = fastify.jwt.decode(token, { complete: true }) as any;
+                console.log('--- DEBUG JWT ---');
+                console.log('Header:', decoded?.header);
+                console.log('Payload:', decoded?.payload);
+                console.log('-----------------');
+            }
+
             await request.jwtVerify();
 
-            const jwtUser = request.user as { sub: string; email: string };
+            const jwtUser = request.user as { sub: string; email: string; user_metadata?: { name?: string } };
             request.jwtUser = jwtUser;
 
             // Try to fetch local user
@@ -76,17 +88,35 @@ export default fp(async (fastify, opts) => {
 
             if (user) {
                 request.dbUser = user;
-                // Assume context is the owned workspace for now (Multi-tenancy rule: "user only accesses own workspace")
-                // Finding the workspace where ownerUserId == user.id
+                // Assume context is the owned workspace for now
                 const ownedWorkspace = user.workspaces.find(w => w.ownerUserId === user.id);
                 request.activeWorkspace = ownedWorkspace || null;
             } else {
-                request.dbUser = null;
-                request.activeWorkspace = null;
+                console.log('User not found in local DB, creating JIT...');
+                // JIT Provisioning
+                // Create User + Default Workspace
+                const newUser = await fastify.prisma.user.create({
+                    data: {
+                        id: jwtUser.sub,
+                        name: jwtUser.user_metadata?.name || 'Viajante',
+                        email: jwtUser.email,
+                        workspaces: {
+                            create: {
+                                name: 'Meu Espaço',
+                                planId: 'free' // Default plan
+                            }
+                        }
+                    },
+                    include: { workspaces: true }
+                });
+
+                request.dbUser = newUser;
+                request.activeWorkspace = newUser.workspaces[0] || null;
+                console.log('JIT User Created:', newUser.id);
             }
 
         } catch (err) {
-            request.log.error({ msg: 'JWT Verification Error', err });
+            console.error('CRITICAL JWT ERROR:', err);
             throw new ApiError('UNAUTHORIZED', 'Invalid or expired token', 401);
         }
     });
