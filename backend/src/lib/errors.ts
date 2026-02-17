@@ -64,7 +64,7 @@ export function errorHandler(error: Error, request: FastifyRequest, reply: Fasti
 
     return reply.status(500).send({
         code: 'INTERNAL_ERROR',
-        message: 'Erro interno do servidor',
-        details: {}
+        message: 'Erro interno do servidor: ' + error.message,
+        details: { stack: error.stack }
     });
 }

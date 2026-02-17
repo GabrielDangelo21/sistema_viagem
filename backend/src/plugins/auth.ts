@@ -142,7 +142,7 @@ export default fp(async (fastify, opts) => {
                 console.error('Error Message:', err.message);
                 console.error('Error Stack:', err.stack);
             }
-            throw new ApiError('UNAUTHORIZED', 'Invalid or expired token', 401);
+            throw new ApiError('UNAUTHORIZED', `Auth Failed: ${err instanceof Error ? err.message : 'Unknown Error'}`, 401);
         }
     });
 });
