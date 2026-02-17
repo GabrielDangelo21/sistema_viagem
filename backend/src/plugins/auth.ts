@@ -100,46 +100,76 @@ export default fp(async (fastify, opts) => {
             const jwtUser = request.user as { sub: string; email: string; user_metadata?: { name?: string } };
             request.jwtUser = jwtUser;
 
-            // Atomic Upsert to handle parallel requests provisioning the same user
-            const user = await fastify.prisma.user.upsert({
+            // 1. Try to find existing user first
+            let user = await fastify.prisma.user.findUnique({
                 where: { id: jwtUser.sub },
-                update: {
-                    name: jwtUser.user_metadata?.name || 'Viajante',
-                    email: jwtUser.email,
-                },
-                create: {
-                    id: jwtUser.sub,
-                    name: jwtUser.user_metadata?.name || 'Viajante',
-                    email: jwtUser.email,
-                    workspaces: {
-                        create: {
-                            name: 'Meu Espaço',
-                            planId: 'pro'
-                        }
-                    }
-                },
-                include: {
-                    workspaces: true
-                }
+                include: { workspaces: true }
             });
 
-            request.dbUser = user;
-            // Get or create workspace if missing (shouldn't happen with the upsert above, but safe)
-            const ownedWorkspace = user.workspaces.find(w => w.ownerUserId === user.id) || user.workspaces[0];
+            // 2. If doesn't exist, create it (with a try-catch to handle concurrent creation)
+            if (!user) {
+                try {
+                    console.log(`[Auth] Creating new user profile: ${jwtUser.sub}`);
+                    user = await fastify.prisma.user.create({
+                        data: {
+                            id: jwtUser.sub,
+                            name: jwtUser.user_metadata?.name || 'Viajante',
+                            email: jwtUser.email,
+                            workspaces: {
+                                create: {
+                                    name: 'Meu Espaço',
+                                    planId: 'pro'
+                                }
+                            }
+                        },
+                        include: {
+                            workspaces: true
+                        }
+                    });
+                } catch (createErr) {
+                    console.warn(`[Auth] User concurrent creation hit, retrying find: ${jwtUser.sub}`);
+                    user = await fastify.prisma.user.findUnique({
+                        where: { id: jwtUser.sub },
+                        include: { workspaces: true }
+                    });
+                    if (!user) {
+                        console.error('[Auth] Failed to create or find user:', createErr);
+                        throw createErr;
+                    }
+                }
+            } else {
+                // Update basic info if changed (silent update)
+                fastify.prisma.user.update({
+                    where: { id: jwtUser.sub },
+                    data: {
+                        name: jwtUser.user_metadata?.name || user.name,
+                        email: jwtUser.email || user.email,
+                    }
+                }).catch(e => console.error('[Auth] User metadata update failed:', e));
+            }
 
-            if (!ownedWorkspace) {
-                console.log('User has no workspace, creating one...');
-                const newWorkspace = await fastify.prisma.workspace.create({
+            if (!user) throw new Error('User not found after provisioning');
+
+            request.dbUser = user;
+
+            // 3. Ensure a workspace exists
+            let activeWorkspace = (user.workspaces && user.workspaces.length > 0)
+                ? (user.workspaces.find(w => w.ownerUserId === user?.id) || user.workspaces[0])
+                : null;
+
+            if (!activeWorkspace) {
+                console.log(`[Auth] User ${user.id} has no workspace, creating one...`);
+                activeWorkspace = await fastify.prisma.workspace.create({
                     data: {
                         name: 'Meu Espaço',
                         planId: 'pro',
                         ownerUserId: user.id
                     }
                 });
-                request.activeWorkspace = newWorkspace;
-            } else {
-                request.activeWorkspace = ownedWorkspace;
             }
+
+            request.activeWorkspace = activeWorkspace;
+            console.log(`[Auth] User ${user.id} authenticated with Workspace ${activeWorkspace.id}`);
 
             console.log('Authenticated User:', user.id);
 

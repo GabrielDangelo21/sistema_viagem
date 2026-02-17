@@ -11,7 +11,6 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNavigate }) => {
   const navItems = [
     { id: 'dashboard', label: 'Início', icon: Home },
-    { id: 'dashboard', label: 'Início', icon: Home },
     { id: 'trips', label: 'Viagens', icon: Map },
     { id: 'profile', label: 'Perfil', icon: UserIcon },
   ];
@@ -37,8 +36,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
                 key={item.id}
                 onClick={() => onNavigate(item.id as RouteName)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                    ? 'bg-brand-50 text-brand-700 font-medium'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-brand-50 text-brand-700 font-medium'
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
               >
                 <Icon size={20} />

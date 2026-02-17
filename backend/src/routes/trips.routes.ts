@@ -204,13 +204,34 @@ export async function tripsRoutes(app: FastifyInstance) {
     }, async (request) => {
         const { id } = request.params;
         const { activeWorkspace } = request;
+
+        console.log(`[DeleteTrip] Attempting to delete trip ${id} for workspace ${activeWorkspace?.id}`);
+
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const trip = await app.prisma.trip.findUnique({ where: { id } });
-        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
-        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        const trip = await app.prisma.trip.findUnique({
+            where: { id },
+            include: { itineraryDays: { include: { activities: true } }, reservations: true }
+        });
 
-        await app.prisma.trip.delete({ where: { id } });
+        if (!trip) {
+            console.warn(`[DeleteTrip] Trip ${id} not found`);
+            throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+        }
+
+        if (trip.workspaceId !== activeWorkspace.id) {
+            console.warn(`[DeleteTrip] Trip ${id} does not belong to workspace ${activeWorkspace.id}`);
+            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        }
+
+        try {
+            console.log(`[DeleteTrip] Deleting trip ${id} from DB...`);
+            await app.prisma.trip.delete({ where: { id } });
+            console.log(`[DeleteTrip] Success!`);
+        } catch (dbErr) {
+            console.error(`[DeleteTrip] Database crash:`, dbErr);
+            throw dbErr;
+        }
 
         return { message: 'Viagem deletada' };
     });
