@@ -110,7 +110,10 @@ export async function tripsRoutes(app: FastifyInstance) {
 
         const trip = await app.prisma.trip.findUnique({
             where: { id },
-            include: { itineraryDays: { include: { activities: true } } }
+            include: {
+                itineraryDays: { include: { activities: true } },
+                reservations: { orderBy: { startDateTime: 'asc' } }
+            }
         });
 
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
