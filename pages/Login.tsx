@@ -58,6 +58,26 @@ export function Login() {
         }
     };
 
+    const handleForgotPassword = async () => {
+        if (!email) {
+            setMessage({ type: 'error', text: 'Digite seu e-mail primeiro.' });
+            return;
+        }
+        setLoading(true);
+        setMessage(null);
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`,
+            });
+            if (error) throw error;
+            setMessage({ type: 'success', text: 'E-mail de recuperação enviado!' });
+        } catch (error: any) {
+            setMessage({ type: 'error', text: error.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
             <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
@@ -111,7 +131,18 @@ export function Login() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                        <div className="flex justify-between items-center mb-1">
+                            <label className="block text-sm font-medium text-gray-700">Senha</label>
+                            {!isSignUp && (
+                                <button
+                                    type="button"
+                                    onClick={handleForgotPassword}
+                                    className="text-xs text-brand-600 hover:underline"
+                                >
+                                    Esqueceu a senha?
+                                </button>
+                            )}
+                        </div>
                         <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                             <input
