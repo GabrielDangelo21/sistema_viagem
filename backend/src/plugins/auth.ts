@@ -28,9 +28,33 @@ declare module 'fastify' {
     }
 }
 
+import buildGetJwks from 'get-jwks';
+
+const getJwks = buildGetJwks({
+    providerDiscovery: false, // Supabase doesn't strictly follow OIDC discovery for this endpoint usually, or simply providing JWKS URL is enough
+    ttl: 600000, // Cache for 10 minutes
+});
+
+// Helper to get Supabase Project ID or URL from env
+// We assume DATABASE_URL contains the project ID or we use a new env var. 
+// Ideally we should add SUPABASE_URL to backend .env, but for now strict replacement:
+// We know the URL is https://hhxaoitjibuqsybhknzc.supabase.co
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hhxaoitjibuqsybhknzc.supabase.co';
+const JWKS_URL = `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`;
+
 export default fp(async (fastify, opts) => {
     fastify.register(fastifyJwt, {
-        secret: process.env.SUPABASE_JWT_SECRET!,
+        decode: { complete: true }, // We need the header to get 'kid'
+        secret: async (request: FastifyRequest, token: any) => {
+            const { header } = token;
+            // Fetch the public key from Supabase JWKS
+            const publicKey = await getJwks.getPublicKey({
+                domain: JWKS_URL,
+                alg: header.alg,
+                kid: header.kid,
+            });
+            return publicKey;
+        },
     });
 
     fastify.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
