@@ -18,7 +18,11 @@ export const app = Fastify({
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
-app.register(cors);
+app.register(cors, {
+    origin: true, // Allow all origins (or set to specific domains in production)
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+});
 app.register(prismaPlugin);
 app.register(authPlugin);
 

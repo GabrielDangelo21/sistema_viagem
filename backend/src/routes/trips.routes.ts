@@ -64,38 +64,40 @@ export async function tripsRoutes(app: FastifyInstance) {
             }
         }
 
-        const trip = await app.prisma.trip.create({
-            data: {
-                name,
-                destination,
-                startDate,
-                endDate,
-                coverImageUrl,
-                workspaceId: activeWorkspace.id
-            }
-        });
+        return await app.prisma.$transaction(async (tx) => {
+            const trip = await tx.trip.create({
+                data: {
+                    name,
+                    destination,
+                    startDate,
+                    endDate,
+                    coverImageUrl,
+                    workspaceId: activeWorkspace.id
+                }
+            });
 
-        // Generate Days
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const diffTime = Math.abs(end.getTime() - start.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            // Generate Days
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end.getTime() - start.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-        const daysData = Array.from({ length: diffDays }).map((_, i) => {
-            const date = new Date(start);
-            date.setDate(date.getDate() + i);
+            const daysData = Array.from({ length: diffDays }).map((_, i) => {
+                const date = new Date(start);
+                date.setDate(date.getDate() + i);
+                return {
+                    tripId: trip.id,
+                    date: date.toISOString().split('T')[0] as string
+                };
+            });
+
+            await tx.itineraryDay.createMany({ data: daysData });
+
             return {
-                tripId: trip.id,
-                date: date.toISOString().split('T')[0] as string
+                ...trip,
+                status: deriveTripStatus(trip.startDate, trip.endDate)
             };
         });
-
-        await app.prisma.itineraryDay.createMany({ data: daysData });
-
-        return {
-            ...trip,
-            status: deriveTripStatus(trip.startDate, trip.endDate)
-        };
     });
 
     // Get Trip
