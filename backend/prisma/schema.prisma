@@ -46,12 +46,6 @@ model Trip {
   itineraryDays ItineraryDay[]
   reservations  Reservation[]
   
-  // FileMeta linked to Trip (e.g. cover image or documents not specific to res/activity)
-  // The contract implies FileMeta can be linked, but the relation field on Trip isn't explicitly detailed in the entity list
-  // However, Cascade Delete rule says "DELETE Trip apaga... FileMeta vinculados".
-  // So we need a relation.
-  fileMeta FileMeta[]
-
   @@index([workspaceId])
 }
 
@@ -86,7 +80,6 @@ model Activity {
   updatedAt    DateTime @updatedAt
 
   day      ItineraryDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
-  fileMeta FileMeta[]
 
   @@index([dayId])
 }
@@ -128,7 +121,6 @@ model Reservation {
   updatedAt        DateTime          @updatedAt
 
   trip     Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  fileMeta FileMeta[]
 
   @@index([tripId])
   @@index([startDateTime])
@@ -144,16 +136,8 @@ model FileMeta {
   originalName  String
   createdAt     DateTime @default(now())
   
-  // Optional relations for cascade delete / context
-  tripId        String?
-  activityId    String?
-  reservationId String?
-
   workspace   Workspace    @relation(fields: [workspaceId], references: [id])
   user        User         @relation(fields: [ownerUserId], references: [id])
-  trip        Trip?        @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  activity    Activity?    @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId])
   @@index([ownerUserId])
