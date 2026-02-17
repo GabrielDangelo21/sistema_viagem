@@ -106,7 +106,37 @@ export default fp(async (fastify, opts) => {
                 include: { workspaces: true }
             });
 
-            // 2. If doesn't exist, create it (with a try-catch to handle concurrent creation)
+            // 2. If doesn't exist by ID, check if exists by Email (ID Mismatch repair)
+            if (!user) {
+                const existingByEmail = await fastify.prisma.user.findUnique({
+                    where: { email: jwtUser.email },
+                    include: { workspaces: true }
+                });
+
+                if (existingByEmail) {
+                    console.warn(`[Auth] User ID mismatch for ${jwtUser.email}. Repairing: ${existingByEmail.id} -> ${jwtUser.sub}`);
+                    try {
+                        // Raw SQL update to bypass any Prisma level restrictions on updating Primary Keys
+                        // Since DB has ON UPDATE CASCADE, this will re-link workspaces and files automatically
+                        await fastify.prisma.$executeRawUnsafe(
+                            'UPDATE "User" SET id = $1 WHERE id = $2',
+                            jwtUser.sub,
+                            existingByEmail.id
+                        );
+
+                        // Re-fetch the repaired user
+                        user = await fastify.prisma.user.findUnique({
+                            where: { id: jwtUser.sub },
+                            include: { workspaces: true }
+                        });
+                        console.log(`[Auth] User profile repaired successfully for ${jwtUser.sub}`);
+                    } catch (repairErr) {
+                        console.error(`[Auth] Failed to repair user ID mismatch:`, repairErr);
+                    }
+                }
+            }
+
+            // 3. If still not found, create it (with a try-catch to handle concurrent creation)
             if (!user) {
                 try {
                     console.log(`[Auth] Creating new user profile: ${jwtUser.sub}`);
