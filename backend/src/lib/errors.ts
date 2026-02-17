@@ -40,6 +40,14 @@ export function errorHandler(error: Error, request: FastifyRequest, reply: Fasti
         });
     }
 
+    if ((error as any).code === 'FST_ERR_VALIDATION') {
+        return reply.status(400).send({
+            code: 'VALIDATION_ERROR',
+            message: 'Erro de validação',
+            details: { issues: (error as any).validation }
+        });
+    }
+
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
         // Unique constraint violation
         if (error.code === 'P2002') {
@@ -51,6 +59,7 @@ export function errorHandler(error: Error, request: FastifyRequest, reply: Fasti
         }
     }
 
+    console.error('ALL_CAPS_ERROR_LOG:', error);
     request.log.error(error);
 
     return reply.status(500).send({
