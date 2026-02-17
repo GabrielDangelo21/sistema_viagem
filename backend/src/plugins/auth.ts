@@ -43,17 +43,24 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hhxaoitjibuqsybhknzc.s
 const JWKS_URL = `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`;
 
 export default fp(async (fastify, opts) => {
+    console.log('--- AUTH PLUGIN INITIALIZED ---');
+    console.log('SUPABASE_URL:', SUPABASE_URL);
+    console.log('JWKS_URL:', JWKS_URL);
+
     fastify.register(fastifyJwt, {
-        decode: { complete: true }, // We need the header to get 'kid'
+        decode: { complete: true },
         secret: async (request: FastifyRequest, token: any) => {
             const { header } = token;
-            // Fetch the public key from Supabase JWKS
-            const publicKey = await getJwks.getPublicKey({
-                domain: JWKS_URL,
-                alg: header.alg,
-                kid: header.kid,
-            });
-            return publicKey;
+            try {
+                return await getJwks.getPublicKey({
+                    domain: `${SUPABASE_URL}/auth/v1`,
+                    alg: header.alg,
+                    kid: header.kid,
+                });
+            } catch (err) {
+                console.error('[Auth] JWKS Error:', err);
+                throw err;
+            }
         },
         sign: { algorithm: 'RS256' },
         verify: {
@@ -64,14 +71,16 @@ export default fp(async (fastify, opts) => {
 
     fastify.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
         try {
-            const token = request.headers.authorization?.replace(/^Bearer /i, '');
-            if (token) {
-                const decoded = fastify.jwt.decode(token, { complete: true }) as any;
-                console.log('--- DEBUG JWT ---');
-                console.log('Header:', decoded?.header);
-                console.log('Payload:', decoded?.payload);
-                console.log('-----------------');
-            }
+            // const token = request.headers.authorization?.replace(/^Bearer /i, '');
+            // if (token) {
+            //     const decoded = fastify.jwt.decode(token, { complete: true }) as any;
+            //     console.log('Header:', decoded?.header);
+            //     console.log('Payload ISS:', decoded?.payload?.iss);
+            //     console.log('Payload SUB:', decoded?.payload?.sub);
+            //     // console.log('Payload:', decoded?.payload);
+            // } else {
+            //     console.warn('[Auth] No token found in header');
+            // }
 
             await request.jwtVerify();
 
@@ -79,6 +88,7 @@ export default fp(async (fastify, opts) => {
             request.jwtUser = jwtUser;
 
             // Try to fetch local user
+            // ... (rest of logic) ...
             const user = await fastify.prisma.user.findUnique({
                 where: { id: jwtUser.sub },
                 include: {
@@ -88,13 +98,10 @@ export default fp(async (fastify, opts) => {
 
             if (user) {
                 request.dbUser = user;
-                // Assume context is the owned workspace for now
                 const ownedWorkspace = user.workspaces.find(w => w.ownerUserId === user.id);
                 request.activeWorkspace = ownedWorkspace || null;
             } else {
                 console.log('User not found in local DB, creating JIT...');
-                // JIT Provisioning
-                // Create User + Default Workspace
                 const newUser = await fastify.prisma.user.create({
                     data: {
                         id: jwtUser.sub,
@@ -103,7 +110,7 @@ export default fp(async (fastify, opts) => {
                         workspaces: {
                             create: {
                                 name: 'Meu Espaço',
-                                planId: 'free' // Default plan
+                                planId: 'free'
                             }
                         }
                     },
@@ -117,6 +124,11 @@ export default fp(async (fastify, opts) => {
 
         } catch (err) {
             console.error('CRITICAL JWT ERROR:', err);
+            // More detailed logging
+            if (err instanceof Error) {
+                console.error('Error Message:', err.message);
+                console.error('Error Stack:', err.stack);
+            }
             throw new ApiError('UNAUTHORIZED', 'Invalid or expired token', 401);
         }
     });
