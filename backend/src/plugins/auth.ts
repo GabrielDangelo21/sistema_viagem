@@ -55,6 +55,8 @@ export default fp(async (fastify, opts) => {
             });
             return publicKey;
         },
+        sign: { algorithm: 'RS256' }, // Default for signing (not used here but good practice)
+        verify: { allowedIss: [SUPABASE_URL], algorithms: ['RS256', 'ES256', 'HS256', 'EdDSA'] }
     });
 
     fastify.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -84,6 +86,7 @@ export default fp(async (fastify, opts) => {
             }
 
         } catch (err) {
+            request.log.error({ msg: 'JWT Verification Error', err });
             throw new ApiError('UNAUTHORIZED', 'Invalid or expired token', 401);
         }
     });
