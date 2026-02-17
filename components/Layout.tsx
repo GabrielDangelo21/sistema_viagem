@@ -11,14 +11,14 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNavigate }) => {
   const navItems = [
     { id: 'dashboard', label: 'Início', icon: Home },
+    { id: 'dashboard', label: 'Início', icon: Home },
     { id: 'trips', label: 'Viagens', icon: Map },
-    { id: 'upgrade', label: 'Planos', icon: Crown },
     { id: 'profile', label: 'Perfil', icon: UserIcon },
   ];
 
   return (
     <div className="flex h-screen bg-gray-50 text-slate-900 font-sans overflow-hidden">
-      
+
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
         <div className="p-6">
@@ -27,7 +27,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
             TripNest
           </h1>
         </div>
-        
+
         <nav className="flex-1 px-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -36,11 +36,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id as RouteName)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive 
-                    ? 'bg-brand-50 text-brand-700 font-medium' 
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                    ? 'bg-brand-50 text-brand-700 font-medium'
                     : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <Icon size={20} />
                 {item.label}
@@ -48,25 +47,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
             );
           })}
         </nav>
-
-        <div className="p-4 border-t border-gray-100">
-          <div className="bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl p-4 text-white">
-            <p className="text-sm font-medium mb-1">Viaje mais!</p>
-            <p className="text-xs text-brand-100 mb-3">Desbloqueie recursos premium.</p>
-            <button 
-              onClick={() => onNavigate('upgrade')}
-              className="w-full bg-white/20 hover:bg-white/30 text-white text-xs py-2 rounded-lg transition-colors"
-            >
-              Ver Planos
-            </button>
-          </div>
-        </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto relative">
         <div className="md:max-w-5xl mx-auto pb-24 md:pb-10">
-            {children}
+          {children}
         </div>
       </main>
 
@@ -80,9 +66,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id as RouteName)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${
-                  isActive ? 'text-brand-600' : 'text-gray-400'
-                }`}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${isActive ? 'text-brand-600' : 'text-gray-400'
+                  }`}
               >
                 <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
                 <span className="text-[10px] font-medium">{item.label}</span>

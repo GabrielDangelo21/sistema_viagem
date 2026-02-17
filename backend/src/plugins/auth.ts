@@ -100,40 +100,48 @@ export default fp(async (fastify, opts) => {
             const jwtUser = request.user as { sub: string; email: string; user_metadata?: { name?: string } };
             request.jwtUser = jwtUser;
 
-            // Try to fetch local user
-            // ... (rest of logic) ...
-            const user = await fastify.prisma.user.findUnique({
+            // Atomic Upsert to handle parallel requests provisioning the same user
+            const user = await fastify.prisma.user.upsert({
                 where: { id: jwtUser.sub },
+                update: {
+                    name: jwtUser.user_metadata?.name || 'Viajante',
+                    email: jwtUser.email,
+                },
+                create: {
+                    id: jwtUser.sub,
+                    name: jwtUser.user_metadata?.name || 'Viajante',
+                    email: jwtUser.email,
+                    workspaces: {
+                        create: {
+                            name: 'Meu Espaço',
+                            planId: 'pro'
+                        }
+                    }
+                },
                 include: {
                     workspaces: true
                 }
             });
 
-            if (user) {
-                request.dbUser = user;
-                const ownedWorkspace = user.workspaces.find(w => w.ownerUserId === user.id);
-                request.activeWorkspace = ownedWorkspace || null;
-            } else {
-                console.log('User not found in local DB, creating JIT...');
-                const newUser = await fastify.prisma.user.create({
-                    data: {
-                        id: jwtUser.sub,
-                        name: jwtUser.user_metadata?.name || 'Viajante',
-                        email: jwtUser.email,
-                        workspaces: {
-                            create: {
-                                name: 'Meu Espaço',
-                                planId: 'free'
-                            }
-                        }
-                    },
-                    include: { workspaces: true }
-                });
+            request.dbUser = user;
+            // Get or create workspace if missing (shouldn't happen with the upsert above, but safe)
+            const ownedWorkspace = user.workspaces.find(w => w.ownerUserId === user.id) || user.workspaces[0];
 
-                request.dbUser = newUser;
-                request.activeWorkspace = newUser.workspaces[0] || null;
-                console.log('JIT User Created:', newUser.id);
+            if (!ownedWorkspace) {
+                console.log('User has no workspace, creating one...');
+                const newWorkspace = await fastify.prisma.workspace.create({
+                    data: {
+                        name: 'Meu Espaço',
+                        planId: 'pro',
+                        ownerUserId: user.id
+                    }
+                });
+                request.activeWorkspace = newWorkspace;
+            } else {
+                request.activeWorkspace = ownedWorkspace;
             }
+
+            console.log('Authenticated User:', user.id);
 
         } catch (err) {
             console.error('CRITICAL JWT ERROR:', err);

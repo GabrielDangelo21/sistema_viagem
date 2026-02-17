@@ -88,8 +88,6 @@ export default function App() {
           initialTab={appState.params?.initialTab}
           onNavigate={navigate}
         />;
-      case 'upgrade':
-        return <Upgrade onNavigate={navigate} />;
       case 'profile':
         return (
           <div className="p-6">

@@ -49,8 +49,8 @@ export async function tripsRoutes(app: FastifyInstance) {
 
         const today = new Date().toISOString().split('T')[0] as string;
 
-        // Check Plan Limits
-        // Free plan: max 2 active trips (planned or ongoing)
+        // Check Plan Limits (REMOVED FOR TESTING - ALL ARE PRO)
+        /*
         if (activeWorkspace.planId === 'free') {
             const activeTripsCount = await app.prisma.trip.count({
                 where: {
@@ -63,6 +63,7 @@ export async function tripsRoutes(app: FastifyInstance) {
                 throw new ApiError('PLAN_LIMIT_REACHED', 'Plano gratuito limitado a 2 viagens ativas', 403);
             }
         }
+        */
 
         return await app.prisma.$transaction(async (tx) => {
             const trip = await tx.trip.create({
