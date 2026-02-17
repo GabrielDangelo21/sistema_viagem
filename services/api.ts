@@ -4,7 +4,8 @@ import {
 } from '../types';
 import { supabase } from '../lib/supabase';
 
-const API_URL = 'http://localhost:3333/api';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
 
 // --- AUTH HELPER ---
 async function getAuthHeaders() {

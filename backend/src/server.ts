@@ -10,33 +10,37 @@ import { activitiesRoutes } from './routes/activities.routes.js';
 import { reservationsRoutes } from './routes/reservations.routes.js';
 import { uploadsRoutes } from './routes/uploads.routes.js';
 
-const server = Fastify({
+
+export const app = Fastify({
     logger: true,
 });
 
-server.setValidatorCompiler(validatorCompiler);
-server.setSerializerCompiler(serializerCompiler);
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
 
-server.register(cors);
-server.register(prismaPlugin);
-server.register(authPlugin);
+app.register(cors);
+app.register(prismaPlugin);
+app.register(authPlugin);
 
-server.setErrorHandler(errorHandler);
+app.setErrorHandler(errorHandler);
 
 // Routes
-server.register(authRoutes, { prefix: '/api' });
-server.register(tripsRoutes, { prefix: '/api/trips' });
-server.register(activitiesRoutes, { prefix: '/api/activities' });
-server.register(reservationsRoutes, { prefix: '/api/reservations' });
-server.register(uploadsRoutes, { prefix: '/api/uploads' });
+app.register(authRoutes, { prefix: '/api' });
+app.register(tripsRoutes, { prefix: '/api/trips' });
+app.register(activitiesRoutes, { prefix: '/api/activities' });
+app.register(reservationsRoutes, { prefix: '/api/reservations' });
+app.register(uploadsRoutes, { prefix: '/api/uploads' });
 
-const start = async () => {
-    try {
-        await server.listen({ port: 3333, host: '0.0.0.0' });
-    } catch (err) {
-        console.error(err);
-        process.exit(1);
-    }
-};
-
-start();
+if (import.meta.url === `file://${process.argv[1]}`) {
+    const start = async () => {
+        try {
+            const port = Number(process.env.PORT) || 3333;
+            await app.listen({ port, host: '0.0.0.0' });
+            console.log(`Server running on http://0.0.0.0:${port}`);
+        } catch (err) {
+            app.log.error(err);
+            process.exit(1);
+        }
+    };
+    start();
+}
