@@ -47,10 +47,23 @@ export default fp(async (fastify, opts) => {
     console.log('SUPABASE_URL:', SUPABASE_URL);
     console.log('JWKS_URL:', JWKS_URL);
 
+    const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
+
     fastify.register(fastifyJwt, {
         decode: { complete: true },
         secret: async (request: FastifyRequest, token: any) => {
             const { header } = token;
+
+            // If algorithm is HS256, use the secret environment variable
+            if (header.alg === 'HS256') {
+                if (!SUPABASE_JWT_SECRET) {
+                    console.error('[Auth] Missing SUPABASE_JWT_SECRET for HS256 token');
+                    throw new Error('Internal Server Error: Missing JWT Secret');
+                }
+                return SUPABASE_JWT_SECRET;
+            }
+
+            // Otherwise (RS256), use JWKS
             try {
                 return await getJwks.getPublicKey({
                     domain: `${SUPABASE_URL}/auth/v1`,
@@ -62,7 +75,7 @@ export default fp(async (fastify, opts) => {
                 throw err;
             }
         },
-        sign: { algorithm: 'RS256' },
+        sign: { algorithm: 'HS256' }, // Default sign to HS256 if we ever sign tokens
         verify: {
             allowedIss: [SUPABASE_URL, `${SUPABASE_URL}/auth/v1`],
             algorithms: ['RS256', 'ES256', 'HS256', 'EdDSA']
