@@ -14,7 +14,6 @@ async function getAuthHeaders() {
     throw new Error('Usuário não autenticado');
   }
   return {
-    'Content-Type': 'application/json',
     'Authorization': `Bearer ${session.access_token}`
   };
 }
@@ -50,7 +49,10 @@ export const api = {
   },
 
   createTrip: async (payload: Pick<Trip, 'name' | 'destination' | 'startDate' | 'endDate' | 'coverImageUrl'>): Promise<TripUI> => {
-    const headers = await getAuthHeaders();
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
     const res = await fetch(`${API_URL}/trips`, {
       method: 'POST',
       headers,
@@ -60,7 +62,10 @@ export const api = {
   },
 
   updateTrip: async (tripId: string, patch: Partial<Pick<Trip, 'name' | 'destination' | 'startDate' | 'endDate' | 'coverImageUrl'>>): Promise<TripUI> => {
-    const headers = await getAuthHeaders();
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
     const res = await fetch(`${API_URL}/trips/${tripId}`, {
       method: 'PATCH',
       headers,
@@ -113,7 +118,10 @@ export const api = {
 
   // --- ACTIVITIES ---
   createActivity: async (payload: Omit<Activity, 'id' | 'createdAt' | 'updatedAt' | 'orderIndex'>): Promise<Activity> => {
-    const headers = await getAuthHeaders();
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
     const res = await fetch(`${API_URL}/activities`, {
       method: 'POST',
       headers,
@@ -124,7 +132,10 @@ export const api = {
 
   // --- RESERVATIONS ---
   createReservation: async (payload: Omit<Reservation, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<Reservation> => {
-    const headers = await getAuthHeaders();
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
     const res = await fetch(`${API_URL}/reservations`, {
       method: 'POST',
       headers,
@@ -137,7 +148,10 @@ export const api = {
   },
 
   updateReservation: async (id: string, patch: Partial<Omit<Reservation, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>>): Promise<Reservation> => {
-    const headers = await getAuthHeaders();
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
     const res = await fetch(`${API_URL}/reservations/${id}`, {
       method: 'PATCH',
       headers,

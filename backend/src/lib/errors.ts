@@ -59,12 +59,23 @@ export function errorHandler(error: Error, request: FastifyRequest, reply: Fasti
         }
     }
 
-    console.error('ALL_CAPS_ERROR_LOG:', error);
-    request.log.error(error);
+    // Default Fastify or generic error
+    const statusCode = (error as any).statusCode || (error as any).status || 500;
+    const isInternal = statusCode >= 500;
 
-    return reply.status(500).send({
-        code: 'INTERNAL_ERROR',
-        message: 'Erro interno do servidor: ' + error.message,
-        details: { stack: error.stack }
+    if (isInternal) {
+        console.error('CRITICAL_SERVER_ERROR:', error);
+        request.log.error(error);
+    } else {
+        console.warn(`[ClientError ${statusCode}]`, error.message);
+    }
+
+    return reply.status(statusCode).send({
+        code: isInternal ? 'INTERNAL_ERROR' : 'BAD_REQUEST',
+        message: error.message || 'Erro inesperado',
+        details: {
+            stack: isInternal ? error.stack : undefined,
+            code: (error as any).code
+        }
     });
 }
