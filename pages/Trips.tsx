@@ -118,8 +118,9 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
     // Create a cinematic prompt based on destination
     const prompt = `wide cinematic shot of ${newTrip.destination}, iconic landmark, 4k, travel photography, dramatic lighting, aspect ratio 16:9`;
     const encodedPrompt = encodeURIComponent(prompt);
+    const seed = Math.floor(Math.random() * 1000000);
     // Pollinations API URL (No key required) - Using 1280x720 for better header/card fit
-    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true`;
+    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}`;
 
     setNewTrip(prev => ({ ...prev, coverImageUrl: url }));
     toast({ message: 'Imagem gerada com Inteligência Artificial!', type: 'success' });
@@ -312,7 +313,7 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
             <div className="w-16 h-16 rounded-lg bg-white border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 relative group">
               {newTrip.coverImageUrl ? (
                 <>
-                  <img src={newTrip.coverImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={newTrip.coverImageUrl} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   <button type="button" onClick={handleRemoveImage} className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <X size={20} />
                   </button>

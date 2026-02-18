@@ -604,7 +604,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <div className="w-16 h-16 rounded-lg bg-white border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 relative group">
                             {editTripForm.coverImageUrl ? (
                                 <>
-                                    <img src={editTripForm.coverImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <img src={editTripForm.coverImageUrl} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                     <button type="button" onClick={handleRemoveImage} className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <X size={20} />
                                     </button>
@@ -672,11 +672,11 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <Button type="button" variant="ghost" onClick={() => setModalOpen(null)}>Cancelar</Button>
                         <Button type="submit">Salvar Alterações</Button>
                     </div>
-                </form>
-            </Modal>
+                </form >
+            </Modal >
 
             {/* Activity Modal */}
-            <Modal isOpen={modalOpen === 'activity'} onClose={() => setModalOpen(null)} title="Nova Atividade">
+            < Modal isOpen={modalOpen === 'activity'} onClose={() => setModalOpen(null)} title="Nova Atividade" >
                 <form onSubmit={handleAddActivity} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Dia</label>
@@ -725,10 +725,10 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <Button type="submit">Salvar</Button>
                     </div>
                 </form>
-            </Modal>
+            </Modal >
 
             {/* Reservation Modal */}
-            <Modal isOpen={modalOpen === 'reservation'} onClose={() => setModalOpen(null)} title={editingResId ? "Editar Reserva" : "Nova Reserva"}>
+            < Modal isOpen={modalOpen === 'reservation'} onClose={() => setModalOpen(null)} title={editingResId ? "Editar Reserva" : "Nova Reserva"} >
                 <form onSubmit={handleSaveReservation} className="space-y-4">
                     {resFormError && (
                         <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">
@@ -832,10 +832,10 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <Button type="submit">Salvar Reserva</Button>
                     </div>
                 </form>
-            </Modal>
+            </Modal >
 
             {/* Delete Reservation Confirmation */}
-            <Modal isOpen={modalOpen === 'delete-res'} onClose={() => setModalOpen(null)} title="Excluir Reserva?">
+            < Modal isOpen={modalOpen === 'delete-res'} onClose={() => setModalOpen(null)} title="Excluir Reserva?" >
                 <div className="py-2">
                     {deleteError && (
                         <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2 mb-4">
@@ -848,7 +848,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <Button variant="danger" onClick={confirmDeleteReservation}>Excluir</Button>
                     </div>
                 </div>
-            </Modal>
-        </div>
+            </Modal >
+        </div >
     );
 };
