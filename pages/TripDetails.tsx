@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { handleApiError } from '../services/handleApiError';
 import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus } from '../types';
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
-import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X } from 'lucide-react';
 import { ParticipantsList } from '../components/ParticipantsList';
 import { FinanceModule } from '../components/FinanceModule';
 
@@ -40,6 +40,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     // State for Activity Form
     const [newActivity, setNewActivity] = useState<Partial<Activity>>({ title: '' });
     const [selectedDayId, setSelectedDayId] = useState<string>('');
+
+    // File Input Ref for Edit Trip
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (tripId) fetchData(tripId);
@@ -100,6 +103,33 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         } catch (err: any) {
             const error = handleApiError(err);
             setEditFormError(error.message);
+        }
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // 2MB Limit Check
+            if (file.size > 2 * 1024 * 1024) {
+                toast({ message: 'A imagem deve ter no máximo 2MB.', type: 'error' });
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setEditTripForm(prev => ({ ...prev, coverImageUrl: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setEditTripForm(prev => ({ ...prev, coverImageUrl: '' }));
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
@@ -555,8 +585,36 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <input required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                             value={editTripForm.destination} onChange={e => setEditTripForm({ ...editTripForm, destination: e.target.value })} />
                     </div>
+                    {/* Cover Image Upload */}
+                    <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <div className="w-16 h-16 rounded-lg bg-white border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 relative group">
+                            {editTripForm.coverImageUrl ? (
+                                <>
+                                    <img src={editTripForm.coverImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <button type="button" onClick={handleRemoveImage} className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <X size={20} />
+                                    </button>
+                                </>
+                            ) : (
+                                <ImageIcon className="text-gray-400" size={24} />
+                            )}
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Capa da Viagem (Opcional)</label>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1 ml-1">Máximo 2MB</p>
+                        </div>
+                    </div>
+
+                    {/* URL Input (Optional Fallback) */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">URL da Imagem de Capa</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Ou cole uma URL</label>
                         <input className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                             placeholder="https://exemplo.com/imagem.jpg"
                             value={editTripForm.coverImageUrl} onChange={e => setEditTripForm({ ...editTripForm, coverImageUrl: e.target.value })} />
