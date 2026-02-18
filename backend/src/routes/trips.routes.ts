@@ -177,9 +177,18 @@ export async function tripsRoutes(app: FastifyInstance) {
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const oldTrip = await app.prisma.trip.findUnique({ where: { id } });
+        const oldTrip = await app.prisma.trip.findUnique({
+            where: { id },
+            include: { participants: true }
+        });
         if (!oldTrip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
-        if (oldTrip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+
+        const isOwnerWorkspace = oldTrip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && oldTrip.participants.some(p => p.userId === request.dbUser!.id);
+
+        if (!isOwnerWorkspace && !isParticipant) {
+            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        }
 
         const { startDate, endDate, name, destination, coverImageUrl, defaultCurrency } = request.body;
 
