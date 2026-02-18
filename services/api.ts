@@ -212,6 +212,7 @@ export const api = {
   createExpense: async (tripId: string, payload: {
     title: string,
     amount: number,
+    currency?: string,
     paidByParticipantId: string,
     participantIdsToSplit: string[],
     date?: string

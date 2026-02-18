@@ -16,6 +16,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
     // New Expense Form State
     const [title, setTitle] = useState('');
     const [amount, setAmount] = useState('');
+    const [currency, setCurrency] = useState('BRL');
     const [paidBy, setPaidBy] = useState('');
     const [splitWith, setSplitWith] = useState<string[]>([]); // Array of IDs
     const [loading, setLoading] = useState(false);
@@ -59,6 +60,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
             await api.createExpense(tripId, {
                 title,
                 amount: parseFloat(amount),
+                currency,
                 paidByParticipantId: paidBy,
                 participantIdsToSplit: splitWith,
                 date: new Date().toISOString()
@@ -115,7 +117,27 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase">Quanto?</label>
-                                    <input className="w-full border p-2 rounded" type="number" step="0.01" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)} required />
+                                    <div className="flex gap-2">
+                                        <select
+                                            className="border p-2 rounded bg-white w-24"
+                                            value={currency}
+                                            onChange={e => setCurrency(e.target.value)}
+                                        >
+                                            <option value="BRL">BRL (R$)</option>
+                                            <option value="USD">USD ($)</option>
+                                            <option value="EUR">EUR (€)</option>
+                                            <option value="GBP">GBP (£)</option>
+                                        </select>
+                                        <input
+                                            className="flex-1 border p-2 rounded"
+                                            type="number"
+                                            step="0.01"
+                                            placeholder="0.00"
+                                            value={amount}
+                                            onChange={e => setAmount(e.target.value)}
+                                            required
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase">Quem pagou?</label>
@@ -156,7 +178,9 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
                                             Pago por <span className="font-medium text-gray-700">{exp.paidBy?.name || 'Desconhecido'}</span> &bull; {new Date(exp.date).toLocaleDateString()}
                                         </p>
                                     </div>
-                                    <span className="font-bold text-xl text-teal-700">R$ {exp.amount.toFixed(2)}</span>
+                                    <span className="font-bold text-xl text-teal-700">
+                                        {exp.currency} {exp.amount.toFixed(2)}
+                                    </span>
                                 </li>
                             ))}
                             {expenses.length === 0 && (

@@ -45,7 +45,7 @@ export async function expensesRoutes(app: FastifyInstance) {
             body: z.object({
                 title: z.string().min(1),
                 amount: z.number().positive(),
-                currency: z.string().default('BRL'),
+                currency: z.enum(['BRL', 'USD', 'EUR', 'GBP']).default('BRL'),
                 paidByParticipantId: z.string().uuid(),
                 date: z.string().datetime().optional(), // ISO String
                 participantIdsToSplit: z.array(z.string().uuid()).min(1),
