@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/src/server.js",
     "verify": "tsx verify_system.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "migrate:deploy": "prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
