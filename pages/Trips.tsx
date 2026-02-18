@@ -3,7 +3,7 @@ import { api } from '../services/api';
 import { handleApiError } from '../services/handleApiError';
 import { TripUI, CurrentUser, RouteName } from '../types';
 import { Button, Modal, Badge, useToast } from '../components/UI';
-import { Plus, Archive, MapPin, Calendar, Lock, Trash2, AlertTriangle, XCircle, Image as ImageIcon, X } from 'lucide-react';
+import { Plus, Archive, MapPin, Calendar, Lock, Trash2, AlertTriangle, XCircle, Image as ImageIcon, X, Wand2 } from 'lucide-react';
 
 interface TripsProps {
   onNavigate: (route: RouteName, params?: any) => void;
@@ -107,6 +107,22 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const generateAIImage = () => {
+    if (!newTrip.destination) {
+      toast({ message: 'Preencha o destino para gerar uma imagem.', type: 'error' });
+      return;
+    }
+
+    // Create a cinematic prompt based on destination
+    const prompt = `wide cinematic shot of ${newTrip.destination}, iconic landmark, 4k, travel photography, dramatic lighting, aspect ratio 16:9`;
+    const encodedPrompt = encodeURIComponent(prompt);
+    // Pollinations API URL (No key required) - Using 1280x720 for better header/card fit
+    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true`;
+
+    setNewTrip(prev => ({ ...prev, coverImageUrl: url }));
+    toast({ message: 'Imagem gerada com Inteligência Artificial!', type: 'success' });
   };
 
 
@@ -316,6 +332,16 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
               />
               <p className="text-[10px] text-gray-400 mt-1 ml-1">Máximo 2MB</p>
             </div>
+
+            <button
+              type="button"
+              onClick={generateAIImage}
+              className="p-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all text-xs font-bold flex flex-col items-center gap-1 shrink-0"
+              title="Gerar imagem com IA"
+            >
+              <Wand2 size={20} />
+              <span className="text-[10px]">IA Mágica</span>
+            </button>
           </div>
 
           <div>
