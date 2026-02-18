@@ -556,6 +556,12 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             value={editTripForm.destination} onChange={e => setEditTripForm({ ...editTripForm, destination: e.target.value })} />
                     </div>
                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">URL da Imagem de Capa</label>
+                        <input className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            placeholder="https://exemplo.com/imagem.jpg"
+                            value={editTripForm.coverImageUrl} onChange={e => setEditTripForm({ ...editTripForm, coverImageUrl: e.target.value })} />
+                    </div>
+                    <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Moeda Padrão</label>
                         <select
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
