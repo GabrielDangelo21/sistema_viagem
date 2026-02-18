@@ -47,7 +47,7 @@ export const ParticipantsList: React.FC<ParticipantsListProps> = ({ tripId }) =>
             await api.removeParticipant(tripId, id);
             await loadParticipants();
         } catch (error) {
-            alert('Erro ao remover participante');
+            alert(error instanceof Error ? error.message : 'Erro ao remover participante');
         }
     };
 
