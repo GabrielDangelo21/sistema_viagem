@@ -19,10 +19,15 @@ export async function expensesRoutes(app: FastifyInstance) {
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const trip = await app.prisma.trip.findFirst({
-            where: { id: tripId, workspaceId: activeWorkspace.id }
+        const trip = await app.prisma.trip.findUnique({
+            where: { id: tripId },
+            include: { participants: true }
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+
+        const isOwner = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
         const expenses = await app.prisma.expense.findMany({
             where: { tripId },
@@ -57,10 +62,15 @@ export async function expensesRoutes(app: FastifyInstance) {
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const trip = await app.prisma.trip.findFirst({
-            where: { id: tripId, workspaceId: activeWorkspace.id }
+        const trip = await app.prisma.trip.findUnique({
+            where: { id: tripId },
+            include: { participants: true }
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+
+        const isOwner = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
         // Verify payer exists in trip
         const payer = await app.prisma.participant.findFirst({
@@ -129,6 +139,16 @@ export async function expensesRoutes(app: FastifyInstance) {
         const { tripId } = request.params;
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
+
+        const trip = await app.prisma.trip.findUnique({
+            where: { id: tripId },
+            include: { participants: true }
+        });
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+
+        const isOwner = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
         // 1. Get all expenses and shares
         const expenses = await app.prisma.expense.findMany({
@@ -240,10 +260,15 @@ export async function expensesRoutes(app: FastifyInstance) {
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const trip = await app.prisma.trip.findFirst({
-            where: { id: tripId, workspaceId: activeWorkspace.id }
+        const trip = await app.prisma.trip.findUnique({
+            where: { id: tripId },
+            include: { participants: true }
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+
+        const isOwner = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
         const expense = await app.prisma.expense.findUnique({
             where: { id: expenseId, tripId }
@@ -280,10 +305,15 @@ export async function expensesRoutes(app: FastifyInstance) {
 
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const trip = await app.prisma.trip.findFirst({
-            where: { id: tripId, workspaceId: activeWorkspace.id }
+        const trip = await app.prisma.trip.findUnique({
+            where: { id: tripId },
+            include: { participants: true }
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+
+        const isOwner = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
         const existingExpense = await app.prisma.expense.findUnique({
             where: { id: expenseId, tripId }

@@ -40,11 +40,15 @@ export async function reservationsRoutes(app: FastifyInstance) {
 
         // Verify Trip
         const trip = await app.prisma.trip.findUnique({
-            where: { id: tripId }
+            where: { id: tripId },
+            include: { participants: true }
         });
 
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
-        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+
+        const isOwner = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         // Validation: end >= start
         if (endDateTime && startDateTime > endDateTime) {
@@ -87,11 +91,14 @@ export async function reservationsRoutes(app: FastifyInstance) {
 
         const reservation = await app.prisma.reservation.findUnique({
             where: { id },
-            include: { trip: true }
+            include: { trip: { include: { participants: true } } }
         });
 
         if (!reservation) throw new ApiError('NOT_FOUND', 'Reserva não encontrada', 404);
-        if (reservation.trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+
+        const isOwner = reservation.trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && reservation.trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         const { startDateTime, endDateTime, ...data } = request.body;
 
@@ -125,11 +132,14 @@ export async function reservationsRoutes(app: FastifyInstance) {
 
         const reservation = await app.prisma.reservation.findUnique({
             where: { id },
-            include: { trip: true }
+            include: { trip: { include: { participants: true } } }
         });
 
         if (!reservation) throw new ApiError('NOT_FOUND', 'Reserva não encontrada', 404);
-        if (reservation.trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+
+        const isOwner = reservation.trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && reservation.trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         await app.prisma.reservation.delete({ where: { id } });
 

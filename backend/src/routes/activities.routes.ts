@@ -30,13 +30,18 @@ export async function activitiesRoutes(app: FastifyInstance) {
         const { dayId, ...data } = request.body;
 
         // Verify Day belongs to user's workspace
+        // Verify Day belongs to user's workspace OR user is participant
         const day = await app.prisma.itineraryDay.findUnique({
             where: { id: dayId },
-            include: { trip: true }
+            include: { trip: { include: { participants: true } } }
         });
 
         if (!day) throw new ApiError('NOT_FOUND', 'Dia não encontrado', 404);
-        if (day.trip.workspaceId !== activeWorkspace.id) {
+
+        const isOwner = day.trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && day.trip.participants.some(p => p.userId === request.dbUser?.id);
+
+        if (!isOwner && !isParticipant) {
             throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
         }
 

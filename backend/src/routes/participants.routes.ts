@@ -19,10 +19,15 @@ export async function participantsRoutes(app: FastifyInstance) {
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const trip = await app.prisma.trip.findFirst({
-            where: { id: tripId, workspaceId: activeWorkspace.id }
+        const trip = await app.prisma.trip.findUnique({
+            where: { id: tripId },
+            include: { participants: true }
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+
+        const isOwner = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
         const participants = await app.prisma.participant.findMany({
             where: { tripId },
@@ -48,10 +53,15 @@ export async function participantsRoutes(app: FastifyInstance) {
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const trip = await app.prisma.trip.findFirst({
-            where: { id: tripId, workspaceId: activeWorkspace.id }
+        const trip = await app.prisma.trip.findUnique({
+            where: { id: tripId },
+            include: { participants: true }
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+
+        const isOwner = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
         // Check if exists by email
         if (email) {
@@ -94,9 +104,15 @@ export async function participantsRoutes(app: FastifyInstance) {
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const trip = await app.prisma.trip.findUnique({ where: { id: tripId } });
+        const trip = await app.prisma.trip.findUnique({
+            where: { id: tripId },
+            include: { participants: true }
+        });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
-        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+
+        const isOwner = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!isOwner && !isParticipant) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
         const participant = await app.prisma.participant.findUnique({ where: { id: participantId } });
         if (!participant) throw new ApiError('NOT_FOUND', 'Participante não encontrado', 404);
