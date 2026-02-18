@@ -1,7 +1,9 @@
 import {
   User, Workspace, Trip, ItineraryDay, Activity, Reservation,
-  TripStatus, TripUI, CurrentUser, ReservationType, ReservationStatus
+  TripStatus, TripUI, CurrentUser, ReservationType, ReservationStatus,
+  Participant, Expense, ExpenseShare,
 } from '../types';
+
 import { supabase } from '../lib/supabase';
 
 
@@ -168,5 +170,70 @@ export const api = {
     });
     await handleResponse(res);
     return { success: true };
+  },
+
+  // --- PARTICIPANTS ---
+  getParticipants: async (tripId: string): Promise<Participant[]> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/trips/${tripId}/participants`, { headers });
+    return handleResponse(res);
+  },
+
+  addParticipant: async (tripId: string, payload: { name: string, email?: string }): Promise<Participant> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/trips/${tripId}/participants`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(res);
+  },
+
+  removeParticipant: async (tripId: string, participantId: string): Promise<{ success: boolean }> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/trips/${tripId}/participants/${participantId}`, {
+      method: 'DELETE',
+      headers
+    });
+    await handleResponse(res);
+    return { success: true };
+  },
+
+  // --- EXPENSES ---
+  getExpenses: async (tripId: string): Promise<Expense[]> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/trips/${tripId}/expenses`, { headers });
+    return handleResponse(res);
+  },
+
+  createExpense: async (tripId: string, payload: {
+    title: string,
+    amount: number,
+    paidByParticipantId: string,
+    participantIdsToSplit: string[],
+    date?: string
+  }): Promise<Expense> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/trips/${tripId}/expenses`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(res);
+  },
+
+  getBalances: async (tripId: string): Promise<{
+    balances: Record<string, number>,
+    suggestedPayments: { from: string, to: string, amount: number, currency: string }[]
+  }> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/trips/${tripId}/expenses/balances`, { headers });
+    return handleResponse(res);
   }
 };

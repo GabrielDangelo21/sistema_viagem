@@ -86,8 +86,43 @@ export interface FileMeta {
   createdAt: string; // ISO_DATETIME
 }
 
+
 export type WorkspaceRole = 'owner' | 'admin' | 'editor' | 'viewer';
 export type TripRole = 'trip_admin' | 'trip_editor' | 'trip_viewer';
+
+export interface Participant {
+  id: string;
+  tripId: string;
+  userId?: string;
+  name: string;
+  email?: string;
+  isOwner: boolean;
+}
+
+export interface Expense {
+  id: string;
+  tripId: string;
+  title: string;
+  amount: number;
+  currency: string;
+  paidByParticipantId: string;
+  date: string; // ISO_DATETIME
+  createdAt: string; // ISO_DATETIME
+
+  // Relations (optional/included)
+  paidBy?: Participant;
+  shares?: ExpenseShare[];
+}
+
+export interface ExpenseShare {
+  id: string;
+  expenseId: string;
+  participantId: string;
+  amount: number;
+  isPaid: boolean;
+
+  participant?: Participant;
+}
 
 // --- UI / APP SPECIFIC TYPES (DERIVED) ---
 

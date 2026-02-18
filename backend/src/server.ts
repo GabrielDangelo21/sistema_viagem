@@ -9,6 +9,8 @@ import { tripsRoutes } from './routes/trips.routes.js';
 import { activitiesRoutes } from './routes/activities.routes.js';
 import { reservationsRoutes } from './routes/reservations.routes.js';
 import { uploadsRoutes } from './routes/uploads.routes.js';
+import { participantsRoutes } from './routes/participants.routes.js';
+import { expensesRoutes } from './routes/expenses.routes.js';
 
 
 export const app = Fastify({
@@ -34,6 +36,8 @@ app.register(tripsRoutes, { prefix: '/api/trips' });
 app.register(activitiesRoutes, { prefix: '/api/activities' });
 app.register(reservationsRoutes, { prefix: '/api/reservations' });
 app.register(uploadsRoutes, { prefix: '/api/uploads' });
+app.register(participantsRoutes, { prefix: '/api/trips/:tripId/participants' });
+app.register(expensesRoutes, { prefix: '/api/trips/:tripId/expenses' });
 
 if (import.meta.url === `file://${process.argv[1]}`) {
     const start = async () => {

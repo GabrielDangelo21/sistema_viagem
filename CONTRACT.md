@@ -1,5 +1,5 @@
 # TRIPNEST – SOURCE OF TRUTH CONTRACT
-VERSION: v1.1
+VERSION: v1.2
 THIS FILE IS THE ABSOLUTE SOURCE OF TRUTH.
 NO FIELD, ENUM OR TYPE MAY BE CHANGED WITHOUT VERSION UPDATE.
 
@@ -167,6 +167,31 @@ FileMeta
 - sizeBytes: number
 - originalName: string
 - createdAt: ISO_DATETIME
+
+Participant
+- id: uuid
+- tripId: uuid
+- userId: uuid (optional)
+- name: string
+- email: string (optional)
+- isOwner: boolean
+
+Expense
+- id: uuid
+- tripId: uuid
+- title: string
+- amount: number
+- currency: string
+- paidByParticipantId: uuid
+- date: ISO_DATETIME
+- createdAt: ISO_DATETIME
+
+ExpenseShare
+- id: uuid
+- expenseId: uuid
+- participantId: uuid
+- amount: number
+- isPaid: boolean
 
 ------------------------------------------------------------
 VALIDATION RULES (MANDATORY)

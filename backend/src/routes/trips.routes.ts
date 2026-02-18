@@ -77,6 +77,19 @@ export async function tripsRoutes(app: FastifyInstance) {
                 }
             });
 
+            // Add Owner as Participant
+            if (activeWorkspace.ownerUserId) {
+                await tx.participant.create({
+                    data: {
+                        tripId: trip.id,
+                        userId: activeWorkspace.ownerUserId,
+                        name: request.dbUser?.name || 'Organizador',
+                        email: request.dbUser?.email || '',
+                        isOwner: true
+                    }
+                });
+            }
+
             // Generate Days
             const start = new Date(startDate);
             const end = new Date(endDate);

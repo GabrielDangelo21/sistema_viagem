@@ -15,6 +15,7 @@ model User {
   
   workspaces Workspace[]
   fileMeta   FileMeta[]
+  participantRecords Participant[]
 }
 
 model Workspace {
@@ -45,6 +46,8 @@ model Trip {
   workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   itineraryDays ItineraryDay[]
   reservations  Reservation[]
+  participants  Participant[]
+  expenses      Expense[]
   
   @@index([workspaceId])
 }
@@ -141,4 +144,55 @@ model FileMeta {
 
   @@index([workspaceId])
   @@index([ownerUserId])
+}
+
+model Participant {
+  id        String  @id @default(uuid())
+  tripId    String
+  userId    String?
+  name      String
+  email     String?
+  isOwner   Boolean @default(false)
+  
+  trip      Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user      User?   @relation(fields: [userId], references: [id])
+  
+  expensesPaid Expense[]
+  expenseShares ExpenseShare[]
+
+  @@index([tripId])
+  @@index([userId])
+}
+
+model Expense {
+  id                  String   @id @default(uuid())
+  tripId              String
+  title               String
+  amount              Float
+  currency            String   @default("BRL")
+  paidByParticipantId String
+  date                DateTime @default(now())
+  categoryId          String?
+  createdAt           DateTime @default(now())
+
+  trip     Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  paidBy   Participant @relation(fields: [paidByParticipantId], references: [id])
+  shares   ExpenseShare[]
+
+  @@index([tripId])
+  @@index([paidByParticipantId])
+}
+
+model ExpenseShare {
+  id            String  @id @default(uuid())
+  expenseId     String
+  participantId String
+  amount        Float
+  isPaid        Boolean @default(false)
+
+  expense     Expense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+  @@index([participantId])
 }
