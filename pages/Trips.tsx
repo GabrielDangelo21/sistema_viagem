@@ -119,8 +119,8 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
     const prompt = `wide cinematic shot of ${newTrip.destination}, iconic landmark, 4k, travel photography, dramatic lighting, aspect ratio 16:9`;
     const encodedPrompt = encodeURIComponent(prompt);
     const seed = Math.floor(Math.random() * 1000000);
-    // Pollinations API URL (No key required) - Using 1280x720 for better header/card fit
-    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&seed=${seed}`;
+    // Pollinations API URL (Flux model is faster/better)
+    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&model=flux&seed=${seed}`;
 
     setNewTrip(prev => ({ ...prev, coverImageUrl: url }));
     toast({ message: 'Imagem gerada com Inteligência Artificial!', type: 'success' });

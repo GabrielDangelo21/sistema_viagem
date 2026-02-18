@@ -141,7 +141,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
         const prompt = `wide cinematic shot of ${editTripForm.destination}, iconic landmark, 4k, travel photography, dramatic lighting, aspect ratio 16:9`;
         const encodedPrompt = encodeURIComponent(prompt);
-        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true`;
+        const seed = Math.floor(Math.random() * 1000000);
+        // Pollinations API URL (Flux model is faster/better)
+        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&model=flux&seed=${seed}`;
 
         setEditTripForm(prev => ({ ...prev, coverImageUrl: url }));
         toast({ message: 'Imagem gerada com Inteligência Artificial!', type: 'success' });
