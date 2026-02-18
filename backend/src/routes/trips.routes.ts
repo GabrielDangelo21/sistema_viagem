@@ -10,11 +10,19 @@ export async function tripsRoutes(app: FastifyInstance) {
 
     // List Trips
     zApp.get('/', async (request) => {
-        const { activeWorkspace } = request;
+        const { activeWorkspace, dbUser } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
+        // Fetch trips where:
+        // 1. The trip belongs to the active workspace (Owner/Legacy behavior)
+        // 2. OR the user is a participant in the trip (Invited)
         const trips = await app.prisma.trip.findMany({
-            where: { workspaceId: activeWorkspace.id },
+            where: {
+                OR: [
+                    { workspaceId: activeWorkspace.id },
+                    dbUser ? { participants: { some: { userId: dbUser.id } } } : {}
+                ]
+            },
             include: { itineraryDays: true },
             orderBy: { startDate: 'asc' }
         });
@@ -121,21 +129,32 @@ export async function tripsRoutes(app: FastifyInstance) {
         }
     }, async (request) => {
         const { id } = request.params;
-        const { activeWorkspace } = request;
+        const { activeWorkspace, dbUser } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
         const trip = await app.prisma.trip.findUnique({
             where: { id },
             include: {
                 itineraryDays: { include: { activities: true } },
-                reservations: { orderBy: { startDateTime: 'asc' } }
+                reservations: { orderBy: { startDateTime: 'asc' } },
+                participants: true // Include participants to check access
             }
         });
 
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
-        if (trip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
-        return { ...trip, status: deriveTripStatus(trip.startDate, trip.endDate) };
+        // Access Check: Owner Workspace OR Participant
+        const isOwnerWorkspace = trip.workspaceId === activeWorkspace.id;
+        const isParticipant = dbUser && trip.participants.some(p => p.userId === dbUser.id);
+
+        if (!isOwnerWorkspace && !isParticipant) {
+            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        }
+
+        const { participants, ...tripData } = trip; // Remove participants from response if not needed, or keep? 
+        // Keeping it might be useful, but let's stick to TripUI interface. 
+        // Actually api.ts expects specific structure.
+        return { ...tripData, status: deriveTripStatus(trip.startDate, trip.endDate) };
     });
 
     // Update Trip
