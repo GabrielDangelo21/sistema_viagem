@@ -227,4 +227,110 @@ export async function expensesRoutes(app: FastifyInstance) {
             suggestedPayments: detailedTransactions
         };
     });
+    // Delete Expense
+    zApp.delete('/:expenseId', {
+        schema: {
+            params: z.object({
+                tripId: z.string().uuid(),
+                expenseId: z.string().uuid(),
+            }),
+        },
+    }, async (request) => {
+        const { tripId, expenseId } = request.params;
+        const { activeWorkspace } = request;
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
+
+        const trip = await app.prisma.trip.findFirst({
+            where: { id: tripId, workspaceId: activeWorkspace.id }
+        });
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+
+        const expense = await app.prisma.expense.findUnique({
+            where: { id: expenseId, tripId }
+        });
+        if (!expense) throw new ApiError('NOT_FOUND', 'Despesa não encontrada', 404);
+
+        await app.prisma.expense.delete({
+            where: { id: expenseId }
+        });
+
+        return { message: 'Despesa removida' };
+    });
+
+    // Update Expense
+    zApp.put('/:expenseId', {
+        schema: {
+            params: z.object({
+                tripId: z.string().uuid(),
+                expenseId: z.string().uuid(),
+            }),
+            body: z.object({
+                title: z.string().min(1),
+                amount: z.number().positive(),
+                currency: z.enum(['BRL', 'USD', 'EUR', 'GBP']).default('BRL'),
+                paidByParticipantId: z.string().uuid(),
+                date: z.string().datetime().optional(),
+                participantIdsToSplit: z.array(z.string().uuid()).min(1),
+            }),
+        },
+    }, async (request) => {
+        const { tripId, expenseId } = request.params;
+        const { title, amount, currency, paidByParticipantId, date, participantIdsToSplit } = request.body;
+        const { activeWorkspace } = request;
+
+        if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
+
+        const trip = await app.prisma.trip.findFirst({
+            where: { id: tripId, workspaceId: activeWorkspace.id }
+        });
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+
+        const existingExpense = await app.prisma.expense.findUnique({
+            where: { id: expenseId, tripId }
+        });
+        if (!existingExpense) throw new ApiError('NOT_FOUND', 'Despesa não encontrada', 404);
+
+        // Verification logic (participants existence)
+        const payer = await app.prisma.participant.findFirst({
+            where: { id: paidByParticipantId, tripId }
+        });
+        if (!payer) throw new ApiError('VALIDATION_ERROR', 'Pagador não encontrado nesta viagem');
+
+        const count = await app.prisma.participant.count({
+            where: { tripId, id: { in: participantIdsToSplit } }
+        });
+        if (count !== participantIdsToSplit.length) {
+            throw new ApiError('VALIDATION_ERROR', 'Alguns participantes da divisão não foram encontrados');
+        }
+
+        const shareAmount = Number((amount / participantIdsToSplit.length).toFixed(2));
+
+        return await app.prisma.$transaction(async (tx) => {
+            // Update Expense
+            const expense = await tx.expense.update({
+                where: { id: expenseId },
+                data: {
+                    title,
+                    amount,
+                    currency,
+                    paidByParticipantId,
+                    date: date ? new Date(date) : undefined,
+                }
+            });
+
+            // Re-create shares
+            await tx.expenseShare.deleteMany({ where: { expenseId } });
+
+            const sharesData = participantIdsToSplit.map(pid => ({
+                expenseId: expense.id,
+                participantId: pid,
+                amount: shareAmount,
+                isPaid: pid === paidByParticipantId
+            }));
+
+            await tx.expenseShare.createMany({ data: sharesData });
+
+            return expense;
+        });
+    });
 }

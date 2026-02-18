@@ -229,6 +229,36 @@ export const api = {
     return handleResponse(res);
   },
 
+  deleteExpense: async (tripId: string, expenseId: string): Promise<{ success: boolean }> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/trips/${tripId}/expenses/${expenseId}`, {
+      method: 'DELETE',
+      headers
+    });
+    await handleResponse(res);
+    return { success: true };
+  },
+
+  updateExpense: async (tripId: string, expenseId: string, payload: {
+    title: string,
+    amount: number,
+    currency?: string,
+    paidByParticipantId: string,
+    participantIdsToSplit: string[],
+    date?: string
+  }): Promise<Expense> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/trips/${tripId}/expenses/${expenseId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(res);
+  },
+
   getBalances: async (tripId: string): Promise<{
     balances: Record<string, number>,
     suggestedPayments: { from: string, to: string, amount: number, currency: string }[]

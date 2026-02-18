@@ -52,27 +52,73 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
         }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
+
+
+    const [editingId, setEditingId] = useState<string | null>(null);
+
+    const handleCreateOrUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title || !amount || !paidBy || splitWith.length === 0) return;
         setLoading(true);
         try {
-            await api.createExpense(tripId, {
+            const payload = {
                 title,
                 amount: parseFloat(amount),
                 currency,
                 paidByParticipantId: paidBy,
                 participantIdsToSplit: splitWith,
                 date: new Date().toISOString()
-            });
-            setTitle('');
-            setAmount('');
+            };
+
+            if (editingId) {
+                const original = expenses.find(e => e.id === editingId);
+                await api.updateExpense(tripId, editingId, {
+                    ...payload,
+                    date: original?.date
+                });
+            } else {
+                await api.createExpense(tripId, payload);
+            }
+
+            resetForm();
             await loadData();
         } catch (e) {
-            alert('Erro ao criar despesa');
+            alert('Erro ao salvar despesa');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleEdit = (exp: Expense) => {
+        setEditingId(exp.id);
+        setTitle(exp.title);
+        setAmount(exp.amount.toString());
+        setCurrency(exp.currency);
+        setPaidBy(exp.paidByParticipantId);
+        if (exp.shares) {
+            setSplitWith(exp.shares.map(s => s.participantId));
+        } else {
+            setSplitWith([]);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('Tem certeza que deseja excluir esta despesa?')) return;
+        try {
+            await api.deleteExpense(tripId, id);
+            await loadData();
+        } catch (e) {
+            alert('Erro ao excluir despesa');
+        }
+    };
+
+    const resetForm = () => {
+        setEditingId(null);
+        setTitle('');
+        setAmount('');
+        setCurrency('BRL');
+        if (participants.length > 0) setPaidBy(participants[0].id);
+        setSplitWith(participants.map(p => p.id));
     };
 
     const toggleSplit = (id: string) => {
@@ -108,8 +154,10 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Form */}
                     <div className="lg:col-span-1">
-                        <form onSubmit={handleCreate} className="bg-gray-50 p-4 rounded-lg border border-gray-200 sticky top-4">
-                            <h3 className="font-bold text-lg mb-4 text-gray-800">Novo Gasto</h3>
+                        <form onSubmit={handleCreateOrUpdate} className="bg-gray-50 p-4 rounded-lg border border-gray-200 sticky top-4">
+                            <h3 className="font-bold text-lg mb-4 text-gray-800">
+                                {editingId ? 'Editar Gasto' : 'Novo Gasto'}
+                            </h3>
                             <div className="space-y-3">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase">O que?</label>
@@ -129,7 +177,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
                                             <option value="GBP">GBP (£)</option>
                                         </select>
                                         <input
-                                            className="flex-1 border p-2 rounded"
+                                            className="flex-1 min-w-0 border p-2 rounded"
                                             type="number"
                                             step="0.01"
                                             placeholder="0.00"
@@ -160,9 +208,16 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" disabled={loading} className="w-full mt-4 bg-teal-600 text-white py-2 rounded font-bold hover:bg-teal-700 disabled:opacity-50 transition-colors">
-                                {loading ? 'Salvando...' : 'Salvar Gasto'}
-                            </button>
+                            <div className="flex gap-2">
+                                <button type="submit" disabled={loading} className="flex-1 mt-4 bg-teal-600 text-white py-2 rounded font-bold hover:bg-teal-700 disabled:opacity-50 transition-colors">
+                                    {loading ? 'Salvando...' : (editingId ? 'Atualizar' : 'Salvar')}
+                                </button>
+                                {editingId && (
+                                    <button type="button" onClick={resetForm} className="mt-4 px-4 py-2 border border-gray-300 rounded font-bold text-gray-600 hover:bg-gray-100">
+                                        Cancelar
+                                    </button>
+                                )}
+                            </div>
                         </form>
                     </div>
 
@@ -172,15 +227,25 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
                         <ul className="space-y-3">
                             {expenses.map(exp => (
                                 <li key={exp.id} className="flex justify-between p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow items-center">
-                                    <div>
+                                    <div className="flex-1">
                                         <p className="font-bold text-gray-900 text-lg">{exp.title}</p>
                                         <p className="text-sm text-gray-500">
                                             Pago por <span className="font-medium text-gray-700">{exp.paidBy?.name || 'Desconhecido'}</span> &bull; {new Date(exp.date).toLocaleDateString()}
                                         </p>
                                     </div>
-                                    <span className="font-bold text-xl text-teal-700">
-                                        {exp.currency} {exp.amount.toFixed(2)}
-                                    </span>
+                                    <div className="flex items-center gap-4">
+                                        <span className="font-bold text-xl text-teal-700">
+                                            {exp.currency} {exp.amount.toFixed(2)}
+                                        </span>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => handleEdit(exp)} className="p-1 text-gray-400 hover:text-blue-600" title="Editar">
+                                                ✏️
+                                            </button>
+                                            <button onClick={() => handleDelete(exp.id)} className="p-1 text-gray-400 hover:text-red-600" title="Excluir">
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </div>
                                 </li>
                             ))}
                             {expenses.length === 0 && (
