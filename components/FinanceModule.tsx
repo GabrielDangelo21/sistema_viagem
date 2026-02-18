@@ -4,9 +4,10 @@ import { Expense, Participant } from '../types';
 
 interface FinanceModuleProps {
     tripId: string;
+    tripDefaultCurrency?: string;
 }
 
-export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
+export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId, tripDefaultCurrency }) => {
     const [activeTab, setActiveTab] = useState<'expenses' | 'balances'>('expenses');
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [balances, setBalances] = useState<Record<string, number>>({});
@@ -16,7 +17,7 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
     // New Expense Form State
     const [title, setTitle] = useState('');
     const [amount, setAmount] = useState('');
-    const [currency, setCurrency] = useState('BRL');
+    const [currency, setCurrency] = useState(tripDefaultCurrency || 'BRL');
     const [paidBy, setPaidBy] = useState('');
     const [splitWith, setSplitWith] = useState<string[]>([]); // Array of IDs
     const [loading, setLoading] = useState(false);
@@ -116,7 +117,8 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId }) => {
         setEditingId(null);
         setTitle('');
         setAmount('');
-        setCurrency('BRL');
+        // Initialize currency with the trip's default currency if available, otherwise BRL
+        setCurrency(tripDefaultCurrency || 'BRL');
         if (participants.length > 0) setPaidBy(participants[0].id);
         setSplitWith(participants.map(p => p.id));
     };

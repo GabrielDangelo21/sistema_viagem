@@ -20,7 +20,11 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const { toast } = useToast();
 
     // Modals
-    const [modalOpen, setModalOpen] = useState<'activity' | 'reservation' | 'delete-res' | null>(null);
+    const [modalOpen, setModalOpen] = useState<'activity' | 'reservation' | 'delete-res' | 'edit-trip' | null>(null);
+
+    // State for Edit Trip Form
+    const [editTripForm, setEditTripForm] = useState({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', defaultCurrency: 'BRL' });
+    const [editFormError, setEditFormError] = useState<string | null>(null);
 
     // State for Reservation Form
     const emptyReservation: Partial<Reservation> = {
@@ -60,6 +64,42 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             onNavigate('trips');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // --- EDIT TRIP HANDLERS ---
+    const handleEditTripClick = () => {
+        if (!data) return;
+        setEditTripForm({
+            name: data.trip.name,
+            destination: data.trip.destination,
+            startDate: data.trip.startDate,
+            endDate: data.trip.endDate,
+            coverImageUrl: data.trip.coverImageUrl || '',
+            defaultCurrency: data.trip.defaultCurrency || 'BRL'
+        });
+        setModalOpen('edit-trip');
+    };
+
+    const handleSaveTrip = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!data) return;
+        setEditFormError(null);
+
+        // Client-side Validation
+        if (editTripForm.endDate < editTripForm.startDate) {
+            setEditFormError("A data final não pode ser anterior à data de início.");
+            return;
+        }
+
+        try {
+            await api.updateTrip(data.trip.id, editTripForm);
+            setModalOpen(null);
+            fetchData(data.trip.id);
+            toast({ message: 'Viagem atualizada!', type: 'success' });
+        } catch (err: any) {
+            const error = handleApiError(err);
+            setEditFormError(error.message);
         }
     };
 
@@ -287,6 +327,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             <div className="flex items-center gap-1 text-gray-200 mt-1">
                                 <MapPin size={16} />
                                 <span className="text-sm font-medium">{trip.destination}</span>
+                                <button onClick={handleEditTripClick} className="ml-2 p-1 hover:bg-white/20 rounded-full transition-colors" title="Editar Viagem">
+                                    <Edit2 size={14} />
+                                </button>
                             </div>
                         </div>
                         {/* Upgrade Hook */}
@@ -489,10 +532,60 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                 {/* FINANCES TAB */}
                 {activeTab === 'finances' && (
                     <div className="animate-in slide-in-from-bottom-2 duration-300">
-                        <FinanceModule tripId={trip.id} />
+                        <FinanceModule tripId={trip.id} tripDefaultCurrency={trip.defaultCurrency} />
                     </div>
                 )}
             </div>
+
+            {/* Edit Trip Modal */}
+            <Modal isOpen={modalOpen === 'edit-trip'} onClose={() => setModalOpen(null)} title="Editar Viagem">
+                <form onSubmit={handleSaveTrip} className="space-y-4">
+                    {editFormError && (
+                        <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">
+                            <XCircle size={16} /> {editFormError}
+                        </div>
+                    )}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Viagem</label>
+                        <input required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            value={editTripForm.name} onChange={e => setEditTripForm({ ...editTripForm, name: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Destino Principal</label>
+                        <input required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            value={editTripForm.destination} onChange={e => setEditTripForm({ ...editTripForm, destination: e.target.value })} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Moeda Padrão</label>
+                        <select
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                            value={editTripForm.defaultCurrency}
+                            onChange={e => setEditTripForm({ ...editTripForm, defaultCurrency: e.target.value })}
+                        >
+                            <option value="BRL">Real (BRL)</option>
+                            <option value="USD">Dólar (USD)</option>
+                            <option value="EUR">Euro (EUR)</option>
+                            <option value="GBP">Libra (GBP)</option>
+                        </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Início</label>
+                            <input type="date" required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                value={editTripForm.startDate} onChange={e => setEditTripForm({ ...editTripForm, startDate: e.target.value })} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Fim</label>
+                            <input type="date" required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                value={editTripForm.endDate} onChange={e => setEditTripForm({ ...editTripForm, endDate: e.target.value })} />
+                        </div>
+                    </div>
+                    <div className="pt-4 flex justify-end gap-2">
+                        <Button type="button" variant="ghost" onClick={() => setModalOpen(null)}>Cancelar</Button>
+                        <Button type="submit">Salvar Alterações</Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Activity Modal */}
             <Modal isOpen={modalOpen === 'activity'} onClose={() => setModalOpen(null)} title="Nova Atividade">

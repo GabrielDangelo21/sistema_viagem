@@ -42,13 +42,14 @@ export async function tripsRoutes(app: FastifyInstance) {
                 startDate: z.string().refine(isValidIsoDate, 'Data inválida (ISO Date)'),
                 endDate: z.string().refine(isValidIsoDate, 'Data inválida (ISO Date)'),
                 coverImageUrl: z.string().optional(),
+                defaultCurrency: z.enum(['BRL', 'USD', 'EUR', 'GBP']).default('BRL'),
             })
         }
     }, async (request) => {
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const { name, destination, startDate, endDate, coverImageUrl } = request.body;
+        const { name, destination, startDate, endDate, coverImageUrl, defaultCurrency } = request.body;
 
         // Validation: endDate >= startDate
         if (endDate < startDate) {
@@ -81,6 +82,7 @@ export async function tripsRoutes(app: FastifyInstance) {
                     startDate,
                     endDate,
                     coverImageUrl,
+                    defaultCurrency,
                     workspaceId: activeWorkspace.id
                 }
             });
@@ -167,6 +169,7 @@ export async function tripsRoutes(app: FastifyInstance) {
                 startDate: z.string().refine(isValidIsoDate).optional(),
                 endDate: z.string().refine(isValidIsoDate).optional(),
                 coverImageUrl: z.string().optional(),
+                defaultCurrency: z.enum(['BRL', 'USD', 'EUR', 'GBP']).optional(),
             })
         }
     }, async (request) => {
@@ -178,7 +181,7 @@ export async function tripsRoutes(app: FastifyInstance) {
         if (!oldTrip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
         if (oldTrip.workspaceId !== activeWorkspace.id) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
 
-        const { startDate, endDate, name, destination, coverImageUrl } = request.body;
+        const { startDate, endDate, name, destination, coverImageUrl, defaultCurrency } = request.body;
 
         // Validation: endDate >= startDate (considering updates)
         const effectiveStart = startDate || oldTrip.startDate;
@@ -200,7 +203,8 @@ export async function tripsRoutes(app: FastifyInstance) {
                 destination,
                 startDate,
                 endDate,
-                coverImageUrl
+                coverImageUrl,
+                defaultCurrency
             }
         });
 

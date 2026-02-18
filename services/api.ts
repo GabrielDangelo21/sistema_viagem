@@ -50,7 +50,7 @@ export const api = {
     return handleResponse(res);
   },
 
-  createTrip: async (payload: Pick<Trip, 'name' | 'destination' | 'startDate' | 'endDate' | 'coverImageUrl'>): Promise<TripUI> => {
+  createTrip: async (payload: Pick<Trip, 'name' | 'destination' | 'startDate' | 'endDate' | 'coverImageUrl' | 'defaultCurrency'>): Promise<TripUI> => {
     const headers = {
       ...(await getAuthHeaders()),
       'Content-Type': 'application/json'
@@ -63,7 +63,7 @@ export const api = {
     return handleResponse(res);
   },
 
-  updateTrip: async (tripId: string, patch: Partial<Pick<Trip, 'name' | 'destination' | 'startDate' | 'endDate' | 'coverImageUrl'>>): Promise<TripUI> => {
+  updateTrip: async (tripId: string, patch: Partial<Pick<Trip, 'name' | 'destination' | 'startDate' | 'endDate' | 'coverImageUrl' | 'defaultCurrency'>>): Promise<TripUI> => {
     const headers = {
       ...(await getAuthHeaders()),
       'Content-Type': 'application/json'
