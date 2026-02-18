@@ -115,15 +115,14 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
       return;
     }
 
-    // Create a cinematic prompt based on destination
-    const prompt = `wide cinematic shot of ${newTrip.destination}, iconic landmark, 4k, travel photography, dramatic lighting, aspect ratio 16:9`;
-    const encodedPrompt = encodeURIComponent(prompt);
-    const seed = Math.floor(Math.random() * 1000000);
-    // Pollinations API URL (Flux model is faster/better)
-    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&nologo=true&model=flux&seed=${seed}`;
+    // Use LoremFlickr for real photos based on destination tags
+    // Format: https://loremflickr.com/{width}/{height}/{tags}?lock={random}
+    const tags = `${encodeURIComponent(newTrip.destination)},city,landmark,view`;
+    const randomLock = Math.floor(Math.random() * 100000);
+    const url = `https://loremflickr.com/1280/720/${tags}?lock=${randomLock}`;
 
     setNewTrip(prev => ({ ...prev, coverImageUrl: url }));
-    toast({ message: 'Imagem gerada com Inteligência Artificial!', type: 'success' });
+    toast({ message: 'Buscando foto do destino...', type: 'success' });
   };
 
 
