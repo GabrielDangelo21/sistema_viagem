@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node run-migrations.js && node dist/src/server.js",
+    "start": "node dist/src/server.js",
     "verify": "tsx verify_system.ts",
     "test": "vitest run",
     "migrate:deploy": "prisma migrate deploy"
