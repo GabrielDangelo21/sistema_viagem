@@ -3,7 +3,8 @@ import { api } from '../services/api';
 import { handleApiError } from '../services/handleApiError';
 import { TripUI, CurrentUser, RouteName } from '../types';
 import { Button, Modal, Badge, useToast } from '../components/UI';
-import { Plus, Archive, MapPin, Calendar, Lock, Trash2, AlertTriangle, XCircle, Image as ImageIcon, X, Wand2 } from 'lucide-react';
+import { Plus, Archive, MapPin, Calendar, Lock, Trash2, AlertTriangle, XCircle, Image as ImageIcon, X } from 'lucide-react';
+
 
 interface TripsProps {
   onNavigate: (route: RouteName, params?: any) => void;
@@ -109,21 +110,8 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
     }
   };
 
-  const generateAIImage = () => {
-    if (!newTrip.destination) {
-      toast({ message: 'Preencha o destino para gerar uma imagem.', type: 'error' });
-      return;
-    }
 
-    // Use LoremFlickr for real photos based on destination tags
-    // Format: https://loremflickr.com/{width}/{height}/{tags}?lock={random}
-    const tags = `${encodeURIComponent(newTrip.destination)},city,landmark,view`;
-    const randomLock = Math.floor(Math.random() * 100000);
-    const url = `https://loremflickr.com/1280/720/${tags}?lock=${randomLock}`;
 
-    setNewTrip(prev => ({ ...prev, coverImageUrl: url }));
-    toast({ message: 'Buscando foto do destino...', type: 'success' });
-  };
 
 
   const handleCreateTrip = async (e: React.FormEvent) => {
@@ -334,15 +322,8 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
               <p className="text-[10px] text-gray-400 mt-1 ml-1">Máximo 2MB</p>
             </div>
 
-            <button
-              type="button"
-              onClick={generateAIImage}
-              className="p-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all text-xs font-bold flex flex-col items-center gap-1 shrink-0"
-              title="Gerar imagem com IA"
-            >
-              <Wand2 size={20} />
-              <span className="text-[10px]">IA Mágica</span>
-            </button>
+            {/* AI Image Generation - Removed as per request due to repetitive images */}
+
           </div>
 
           <div>
