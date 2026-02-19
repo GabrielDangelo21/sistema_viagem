@@ -3,7 +3,8 @@ import { api } from '../services/api';
 import { handleApiError } from '../services/handleApiError';
 import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus } from '../types';
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
-import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Wand2 } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X } from 'lucide-react';
+
 import { ParticipantsList } from '../components/ParticipantsList';
 import { FinanceModule } from '../components/FinanceModule';
 
@@ -133,20 +134,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         }
     };
 
-    const generateAIImage = () => {
-        if (!editTripForm.destination) {
-            toast({ message: 'Preencha o destino para gerar uma imagem.', type: 'error' });
-            return;
-        }
 
-        // Use LoremFlickr for real photos based on destination tags
-        const tags = `${encodeURIComponent(editTripForm.destination)},city,landmark,view`;
-        const randomLock = Math.floor(Math.random() * 100000);
-        const url = `https://loremflickr.com/1280/720/${tags}?lock=${randomLock}`;
-
-        setEditTripForm(prev => ({ ...prev, coverImageUrl: url }));
-        toast({ message: 'Buscando foto do destino...', type: 'success' });
-    };
 
     // --- ACTIVITY HANDLERS ---
     const handleAddActivity = async (e: React.FormEvent) => {
@@ -626,15 +614,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             <p className="text-[10px] text-gray-400 mt-1 ml-1">Máximo 2MB</p>
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={generateAIImage}
-                            className="p-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all text-xs font-bold flex flex-col items-center gap-1 shrink-0"
-                            title="Gerar imagem com IA"
-                        >
-                            <Wand2 size={20} />
-                            <span className="text-[10px]">IA Mágica</span>
-                        </button>
+
                     </div>
 
                     {/* URL Input (Optional Fallback) */}
