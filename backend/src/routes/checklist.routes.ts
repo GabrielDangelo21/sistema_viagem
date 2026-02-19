@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { ApiError } from '../lib/errors.js';
+import { PrismaClient } from '@prisma/client';
 
 export async function checklistRoutes(app: FastifyInstance) {
     const zApp = app.withTypeProvider<ZodTypeProvider>();
@@ -36,7 +37,7 @@ export async function checklistRoutes(app: FastifyInstance) {
 
         const items = await app.prisma.checklistItem.findMany({
             where: { tripId },
-            orderBy: { createdAt: 'asc' }
+            orderBy: { text: 'asc' }
         });
 
         return items;
