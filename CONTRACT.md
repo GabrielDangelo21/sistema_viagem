@@ -201,7 +201,20 @@ VALIDATION RULES (MANDATORY)
 2. Reservation.endDateTime MUST be >= Reservation.startDateTime (if provided)
 3. Trips with past dates ARE allowed
 4. Completed trips MUST NOT trigger reminders
+
 5. Free plan MUST block creation of more than 2 active trips
+
+------------------------------------------------------------
+CHECKLIST (NEW v1.3)
+------------------------------------------------------------
+
+ChecklistItem
+- id: uuid
+- tripId: uuid
+- text: string
+- isChecked: boolean
+- createdAt: ISO_DATETIME
+
 
 ------------------------------------------------------------
 API ERROR FORMAT (STANDARD)

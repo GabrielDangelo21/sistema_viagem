@@ -50,8 +50,22 @@ model Trip {
   reservations  Reservation[]
   participants  Participant[]
   expenses      Expense[]
+  checklistItems ChecklistItem[]
   
   @@index([workspaceId])
+  @@map("trips")
+}
+
+model ChecklistItem {
+  id        String   @id @default(uuid())
+  tripId    String
+  text      String
+  isChecked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@map("checklist_items")
 }
 
 model ItineraryDay {

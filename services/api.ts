@@ -1,7 +1,7 @@
 import {
   User, Workspace, Trip, ItineraryDay, Activity, Reservation,
   TripStatus, TripUI, CurrentUser, ReservationType, ReservationStatus,
-  Participant, Expense, ExpenseShare,
+  Participant, Expense, ExpenseShare, ChecklistItem,
 } from '../types';
 
 import { supabase } from '../lib/supabase';
@@ -266,5 +266,48 @@ export const api = {
     const headers = await getAuthHeaders();
     const res = await fetch(`${API_URL}/trips/${tripId}/expenses/balances`, { headers });
     return handleResponse(res);
+  },
+
+  // --- CHECKLIST ---
+  getChecklist: async (tripId: string): Promise<ChecklistItem[]> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/trips/${tripId}/checklist`, { headers });
+    return handleResponse(res);
+  },
+
+  createChecklistItem: async (tripId: string, text: string): Promise<ChecklistItem> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/trips/${tripId}/checklist`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ text })
+    });
+    return handleResponse(res);
+  },
+
+  toggleChecklistItem: async (id: string, isChecked: boolean): Promise<ChecklistItem> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/checklist/${id}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ isChecked })
+    });
+    return handleResponse(res);
+  },
+
+  deleteChecklistItem: async (id: string): Promise<{ success: boolean }> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/checklist/${id}`, {
+      method: 'DELETE',
+      headers
+    });
+    await handleResponse(res);
+    return { success: true };
   }
 };

@@ -100,6 +100,14 @@ export interface Participant {
   isOwner: boolean;
 }
 
+export interface ChecklistItem {
+  id: string;
+  tripId: string;
+  text: string;
+  isChecked: boolean;
+  createdAt: string;
+}
+
 export interface Expense {
   id: string;
   tripId: string;
