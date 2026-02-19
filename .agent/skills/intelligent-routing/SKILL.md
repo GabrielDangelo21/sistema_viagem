@@ -238,6 +238,7 @@ User: "Add mobile support to the web app"
 - **Priority**: GEMINI.md rules > intelligent-routing
 - If GEMINI.md specifies explicit routing, follow it
 - Intelligent routing is the DEFAULT when no explicit rule exists
+- **Cross-Reference**: When searching for skills, check both `.agent/skills/` (Local) and `G:\Antigravity\Skills\` (Global).
 
 ## Testing the System
 

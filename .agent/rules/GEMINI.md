@@ -127,8 +127,10 @@ When user's prompt is NOT in English:
 **Path Awareness:**
 
 - Agents: `.agent/` (Project)
-- Skills: `.agent/skills/` (Project)
-- Runtime Scripts: `.agent/skills/<skill>/scripts/`
+- Skills:
+    - **Local**: `.agent/skills/` (Project)
+    - **Global**: `G:\Antigravity\Skills\` (System)
+- Runtime Scripts: `.agent/skills/<skill>/scripts/` or `G:\Antigravity\Skills\<skill>\scripts\`
 
 ### 🧠 Read → Understand → Apply
 
