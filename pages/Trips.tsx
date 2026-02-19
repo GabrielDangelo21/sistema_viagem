@@ -167,15 +167,16 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
   };
 
   const handleCreateClick = () => {
-    if (user?.plan === 'free' && activeTrips.length >= 2) {
-      setIsLimitModalOpen(true);
-    } else {
-      setIsModalOpen(true);
-      setFormError(null);
-      setDateError(null);
-      setNewTrip({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', defaultCurrency: 'BRL' });
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    // Limit check bypassed for testing
+    // if (user?.plan === 'free' && activeTrips.length >= 2) {
+    //   setIsLimitModalOpen(true);
+    // } else {
+    setIsModalOpen(true);
+    setFormError(null);
+    setDateError(null);
+    setNewTrip({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', defaultCurrency: 'BRL' });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    // }
   };
 
   const handleDeleteClick = (e: React.MouseEvent, id: string) => {
