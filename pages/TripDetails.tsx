@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { supabase } from '../lib/supabase';
 import { handleApiError } from '../services/handleApiError';
-import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus } from '../types';
+import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus, ChecklistItem } from '../types';
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
-import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2, Check, List } from 'lucide-react';
 
 const TRIP_TYPES = [
     { value: 'lazer', label: 'Lazer', emoji: '🏖️', color: 'bg-blue-100 text-blue-700' },
@@ -21,14 +21,14 @@ import { FinanceModule } from '../components/FinanceModule';
 
 interface TripDetailsProps {
     tripId?: string;
-    initialTab?: 'itinerary' | 'reservations' | 'participants' | 'finances';
+    initialTab?: 'itinerary' | 'reservations' | 'participants' | 'finances' | 'checklist';
     onNavigate: (route: RouteName, params?: any) => void;
 }
 
 export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, onNavigate }) => {
     const [data, setData] = useState<{ trip: TripUI, days: ItineraryDay[], activities: Activity[], reservations: Reservation[] } | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'itinerary' | 'reservations' | 'participants' | 'finances'>(initialTab || 'itinerary');
+    const [activeTab, setActiveTab] = useState<'itinerary' | 'reservations' | 'participants' | 'finances' | 'checklist'>(initialTab || 'itinerary');
     const { toast } = useToast();
 
     // Modals
@@ -49,6 +49,11 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const [deletingResId, setDeletingResId] = useState<string | null>(null);
     const [deleteError, setDeleteError] = useState<string | null>(null);
 
+    // Checklist state
+    const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
+    const [newItemText, setNewItemText] = useState('');
+    const [checklistLoaded, setChecklistLoaded] = useState(false);
+
     // State for Activity Form
     const [newActivity, setNewActivity] = useState<Partial<Activity>>({ title: '' });
     const [selectedDayId, setSelectedDayId] = useState<string>('');
@@ -66,6 +71,22 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             setActiveTab(initialTab);
         }
     }, [initialTab]);
+
+    // Lazy-load checklist when tab is activated
+    useEffect(() => {
+        if (activeTab === 'checklist' && data && !checklistLoaded) {
+            const loadChecklist = async () => {
+                try {
+                    const items = await api.getChecklist(data.trip.id);
+                    setChecklistItems(items);
+                } catch {
+                    setChecklistItems([]);
+                }
+                setChecklistLoaded(true);
+            };
+            loadChecklist();
+        }
+    }, [activeTab, data, checklistLoaded]);
 
     const fetchData = async (id: string) => {
         setLoading(true);
@@ -409,7 +430,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             {/* Tabs */}
             <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm px-4 md:px-8">
                 <div className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar scroll-fade-r">
-                    {['itinerary', 'reservations', 'participants', 'finances'].map((tab) => (
+                    {['itinerary', 'reservations', 'participants', 'finances', 'checklist'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab as any)}
@@ -420,6 +441,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             {tab === 'reservations' && 'Reservas'}
                             {tab === 'participants' && 'Participantes'}
                             {tab === 'finances' && 'Finanças'}
+                            {tab === 'checklist' && 'Checklist'}
                         </button>
                     ))}
                 </div>
@@ -598,6 +620,106 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <FinanceModule tripId={trip.id} tripDefaultCurrency={trip.defaultCurrency} />
                     </div>
                 )}
+
+                {/* CHECKLIST TAB */}
+                {activeTab === 'checklist' && (
+                    <div className="animate-in slide-in-from-bottom-2 duration-300 space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                <List size={20} className="text-orange-500" />
+                                Checklist ({checklistItems.filter(i => i.isChecked).length}/{checklistItems.length})
+                            </h2>
+                        </div>
+
+                        {/* Progress bar */}
+                        {checklistItems.length > 0 && (
+                            <div className="w-full bg-gray-100 rounded-full h-2">
+                                <div
+                                    className="bg-brand-500 h-2 rounded-full transition-all duration-500"
+                                    style={{ width: `${(checklistItems.filter(i => i.isChecked).length / checklistItems.length) * 100}%` }}
+                                />
+                            </div>
+                        )}
+
+                        {/* Items */}
+                        <div className="space-y-2">
+                            {!checklistLoaded ? (
+                                <div className="space-y-3">
+                                    {[1, 2, 3].map(i => <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />)}
+                                </div>
+                            ) : checklistItems.length > 0 ? (
+                                checklistItems.map(item => (
+                                    <div
+                                        key={item.id}
+                                        className={`flex items-center gap-4 p-3.5 rounded-xl transition-all border group ${item.isChecked
+                                            ? 'bg-gray-50/50 border-transparent opacity-70'
+                                            : 'bg-white border-gray-100 hover:border-brand-200 hover:shadow-sm'
+                                            }`}
+                                    >
+                                        <div
+                                            onClick={async () => {
+                                                setChecklistItems(prev => prev.map(i => i.id === item.id ? { ...i, isChecked: !i.isChecked } : i));
+                                                try { await api.toggleChecklistItem(item.id, !item.isChecked); }
+                                                catch { setChecklistItems(prev => prev.map(i => i.id === item.id ? { ...i, isChecked: item.isChecked } : i)); toast({ message: 'Erro ao atualizar', type: 'error' }); }
+                                            }}
+                                            className={`w-6 h-6 rounded-lg border cursor-pointer flex items-center justify-center transition-all shrink-0 ${item.isChecked ? 'bg-brand-500 border-brand-500' : 'border-gray-300 bg-white group-hover:border-brand-400'
+                                                }`}
+                                        >
+                                            <Check size={14} className={`text-white transition-transform ${item.isChecked ? 'scale-100' : 'scale-0'}`} />
+                                        </div>
+                                        <span className={`flex-1 text-sm font-medium select-none ${item.isChecked ? 'text-gray-400 line-through' : 'text-gray-700 group-hover:text-gray-900'
+                                            }`}>
+                                            {item.text}
+                                        </span>
+                                        <button
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                if (!confirm('Remover este item?')) return;
+                                                try { await api.deleteChecklistItem(item.id); setChecklistItems(prev => prev.filter(i => i.id !== item.id)); }
+                                                catch { toast({ message: 'Erro ao remover', type: 'error' }); }
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity p-1"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <EmptyState
+                                    title="Checklist vazio"
+                                    description="Adicione itens importantes para esta viagem!"
+                                    icon={List}
+                                />
+                            )}
+                        </div>
+
+                        {/* Add Item */}
+                        <form
+                            onSubmit={async (e) => {
+                                e.preventDefault();
+                                if (!newItemText.trim()) return;
+                                try {
+                                    const newItem = await api.createChecklistItem(trip.id, newItemText);
+                                    setChecklistItems(prev => [...prev, newItem].sort((a, b) => a.text.localeCompare(b.text)));
+                                    setNewItemText('');
+                                    toast({ message: 'Item adicionado!', type: 'success' });
+                                } catch { toast({ message: 'Erro ao adicionar', type: 'error' }); }
+                            }}
+                            className="flex gap-2 pt-4 border-t border-gray-100"
+                        >
+                            <input
+                                type="text"
+                                placeholder="Adicionar novo item..."
+                                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                                value={newItemText}
+                                onChange={e => setNewItemText(e.target.value)}
+                            />
+                            <Button type="submit" size="sm" disabled={!newItemText.trim()} className="rounded-xl aspect-square p-0 w-10 flex items-center justify-center">
+                                <Plus size={18} />
+                            </Button>
+                        </form>
+                    </div>
+                )}
             </div>
 
             {/* Edit Trip Modal */}
@@ -678,8 +800,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                     type="button"
                                     onClick={() => setEditTripForm({ ...editTripForm, type: tt.value })}
                                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${editTripForm.type === tt.value
-                                            ? 'border-brand-500 bg-brand-50 text-brand-700 ring-2 ring-brand-500/20'
-                                            : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
+                                        ? 'border-brand-500 bg-brand-50 text-brand-700 ring-2 ring-brand-500/20'
+                                        : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
                                         }`}
                                 >
                                     <span>{tt.emoji}</span>

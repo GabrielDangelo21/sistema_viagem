@@ -4,7 +4,7 @@ import { handleApiError } from '../services/handleApiError';
 import { TripUI, CurrentUser, RouteName, Reservation, ReservationType, ChecklistItem } from '../types';
 import {
   Calendar, Plus, MapPin, ArrowRight, Wallet, List, Info,
-  Check, Plane, Hotel, Car, Train, Bus, Utensils, Flag, Box, Briefcase, Trash2, ChevronDown
+  Check, Plane, Hotel, Car, Train, Bus, Utensils, Flag, Box, Briefcase, Trash2
 } from 'lucide-react';
 import { Button, Badge, Modal, useToast } from '../components/UI';
 
@@ -15,13 +15,11 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
   const [nextTrip, setNextTrip] = useState<TripUI | null>(null);
-  const [allTrips, setAllTrips] = useState<TripUI[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
   const [newItemText, setNewItemText] = useState('');
-  const [selectedChecklistTripId, setSelectedChecklistTripId] = useState<string | null>(null);
 
   const { toast } = useToast();
 
@@ -29,17 +27,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
     const fetch = async () => {
       try {
         const allTrips = await api.listTrips();
-        setAllTrips(allTrips);
         // Find first future trip
         const future = allTrips.find(t => t.status === 'planned' || t.status === 'ongoing');
         setNextTrip(future || null);
-
-        // Auto-select next trip for checklist
-        if (future) {
-          setSelectedChecklistTripId(future.id);
-        } else if (allTrips.length > 0) {
-          setSelectedChecklistTripId(allTrips[0].id);
-        }
 
         if (future) {
           // Fetch details to get reservations
@@ -49,6 +39,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
             .sort((a, b) => a.startDateTime.localeCompare(b.startDateTime))
             .slice(0, 3);
           setReservations(sorted);
+
+          // Fetch Checklist
+          const items = await api.getChecklist(future.id);
+          setChecklistItems(items);
         }
       } catch (err) {
         const error = handleApiError(err);
@@ -59,23 +53,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
     };
     fetch();
   }, [toast]);
-
-  // Refetch checklist when selected trip changes
-  useEffect(() => {
-    if (!selectedChecklistTripId) {
-      setChecklistItems([]);
-      return;
-    }
-    const fetchChecklist = async () => {
-      try {
-        const items = await api.getChecklist(selectedChecklistTripId);
-        setChecklistItems(items);
-      } catch {
-        setChecklistItems([]);
-      }
-    };
-    fetchChecklist();
-  }, [selectedChecklistTripId]);
 
   const getCountdown = (dateStr: string) => {
     const tripDate = new Date(dateStr + 'T00:00:00');
@@ -140,11 +117,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
 
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newItemText.trim() || !selectedChecklistTripId) return;
+    if (!newItemText.trim() || !nextTrip) return;
 
     try {
-      const newItem = await api.createChecklistItem(selectedChecklistTripId, newItemText);
-      setChecklistItems([...checklistItems, newItem]);
+      const newItem = await api.createChecklistItem(nextTrip.id, newItemText);
+      setChecklistItems([...checklistItems, newItem].sort((a, b) => a.text.localeCompare(b.text)));
       setNewItemText('');
       toast({ message: 'Item adicionado!', type: 'success' });
     } catch (err) {
@@ -345,31 +322,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
         </section>
 
         {/* B) Essential Checklist */}
-        {allTrips.length > 0 ? (
+        {nextTrip ? (
           <section className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8 relative overflow-hidden flex flex-col h-full">
-            <div className="flex justify-between items-center mb-4 relative z-10">
+            <div className="flex justify-between items-center mb-6 relative z-10">
               <h3 className="font-bold text-xl text-gray-900 flex items-center gap-2.5">
                 <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
                   <List size={20} />
                 </div>
                 Checklist ({checklistItems.filter(i => i.isChecked).length}/{checklistItems.length})
               </h3>
-            </div>
-
-            {/* Trip Selector */}
-            <div className="relative mb-4 z-10">
-              <select
-                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 appearance-none cursor-pointer focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all pr-10"
-                value={selectedChecklistTripId || ''}
-                onChange={e => setSelectedChecklistTripId(e.target.value)}
-              >
-                {allTrips.map(t => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} — {t.destination}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
 
             {/* Checklist Items */}
@@ -435,7 +396,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
       <Modal isOpen={isChecklistModalOpen} onClose={() => setIsChecklistModalOpen(false)} title="Checklist Completo">
         {/* Reusing the widget logic here relative to nextTrip? Or disable for now? */}
         <div className="p-4">
-          <p className="text-gray-500 mb-4">Gerencie todos os itens do seu checklist para <strong>{allTrips.find(t => t.id === selectedChecklistTripId)?.name || 'a viagem'}</strong>.</p>
+          <p className="text-gray-500 mb-4">Gerencie todos os itens do seu checklist para <strong>{nextTrip?.name}</strong>.</p>
           {/* We can duplicate the list here or refactor into component later. For now, let's just show the list again */}
           <div className="space-y-2">
             {checklistItems.map(item => (
