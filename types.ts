@@ -26,6 +26,8 @@ export interface Trip {
   startDate: string; // ISO_DATE
   endDate: string; // ISO_DATE
   coverImageUrl?: string;
+  type?: string;
+  budget?: number | null;
   defaultCurrency?: string;
   createdAt: string; // ISO_DATETIME
   updatedAt: string; // ISO_DATETIME

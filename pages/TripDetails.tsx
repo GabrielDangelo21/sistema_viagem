@@ -6,6 +6,16 @@ import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
 import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 
+const TRIP_TYPES = [
+    { value: 'lazer', label: 'Lazer', emoji: '🏖️', color: 'bg-blue-100 text-blue-700' },
+    { value: 'trabalho', label: 'Trabalho', emoji: '💼', color: 'bg-slate-100 text-slate-700' },
+    { value: 'aventura', label: 'Aventura', emoji: '🏔️', color: 'bg-orange-100 text-orange-700' },
+    { value: 'romantica', label: 'Romântica', emoji: '💑', color: 'bg-pink-100 text-pink-700' },
+    { value: 'familia', label: 'Família', emoji: '👨‍👩‍👧‍👦', color: 'bg-green-100 text-green-700' },
+    { value: 'cultural', label: 'Cultural', emoji: '🏛️', color: 'bg-amber-100 text-amber-700' },
+    { value: 'outro', label: 'Outro', emoji: '✈️', color: 'bg-gray-100 text-gray-700' },
+] as const;
+
 import { ParticipantsList } from '../components/ParticipantsList';
 import { FinanceModule } from '../components/FinanceModule';
 
@@ -25,7 +35,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const [modalOpen, setModalOpen] = useState<'activity' | 'reservation' | 'delete-res' | 'edit-trip' | null>(null);
 
     // State for Edit Trip Form
-    const [editTripForm, setEditTripForm] = useState({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', defaultCurrency: 'BRL' });
+    const [editTripForm, setEditTripForm] = useState({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', type: 'lazer', budget: null as number | null, defaultCurrency: 'BRL' });
     const [editFormError, setEditFormError] = useState<string | null>(null);
 
     // State for Reservation Form
@@ -81,6 +91,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             startDate: data.trip.startDate,
             endDate: data.trip.endDate,
             coverImageUrl: data.trip.coverImageUrl || '',
+            type: data.trip.type || 'lazer',
+            budget: data.trip.budget ?? null,
             defaultCurrency: data.trip.defaultCurrency || 'BRL'
         });
         setModalOpen('edit-trip');
@@ -368,6 +380,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <div className="space-y-1.5">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <Badge status={trip.status} />
+                                {(() => { const tt = TRIP_TYPES.find(t => t.value === trip.type); return tt ? <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${tt.color}`}>{tt.emoji} {tt.label}</span> : null; })()}
                                 <span className="text-xs opacity-90 flex items-center gap-1 font-medium bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
                                     <Calendar size={12} />
                                     {formatDate(trip.startDate, 'range-start')} - {formatDate(trip.endDate, 'range-end')}
@@ -654,6 +667,45 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             <option value="GBP">Libra (GBP)</option>
                         </select>
                     </div>
+
+                    {/* Trip Type */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Viagem</label>
+                        <div className="flex flex-wrap gap-2">
+                            {TRIP_TYPES.map(tt => (
+                                <button
+                                    key={tt.value}
+                                    type="button"
+                                    onClick={() => setEditTripForm({ ...editTripForm, type: tt.value })}
+                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${editTripForm.type === tt.value
+                                            ? 'border-brand-500 bg-brand-50 text-brand-700 ring-2 ring-brand-500/20'
+                                            : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
+                                        }`}
+                                >
+                                    <span>{tt.emoji}</span>
+                                    <span>{tt.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Budget */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Orçamento Previsto (Opcional)</label>
+                        <div className="relative">
+                            <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="number"
+                                min="0"
+                                step="100"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                                placeholder="Ex: 5000"
+                                value={editTripForm.budget ?? ''}
+                                onChange={e => setEditTripForm({ ...editTripForm, budget: e.target.value ? Number(e.target.value) : null })}
+                            />
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Início</label>

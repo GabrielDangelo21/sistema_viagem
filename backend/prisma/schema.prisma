@@ -44,6 +44,8 @@ model Trip {
   startDate   String // ISO_DATE
   endDate     String // ISO_DATE
   coverImageUrl String?
+  type          String   @default("lazer")
+  budget        Float?
   defaultCurrency String @default("BRL")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
