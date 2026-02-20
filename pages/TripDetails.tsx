@@ -416,7 +416,13 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                 )}
 
                 <div className="absolute top-3 left-3 z-10 safe-area-top">
-                    <button onClick={() => onNavigate('trips')} className="bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full backdrop-blur-sm transition-colors">
+                    <button onClick={() => {
+                        if (activeTab === 'overview') {
+                            onNavigate('trips');
+                        } else {
+                            setActiveTab('overview');
+                        }
+                    }} className="bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full backdrop-blur-sm transition-colors">
                         <ArrowLeft size={20} />
                     </button>
                 </div>
@@ -451,26 +457,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm px-4 md:px-8">
-                <div className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar scroll-fade-r">
-                    {['overview', 'itinerary', 'reservations', 'participants', 'finances', 'checklist'].map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab as any)}
-                            className={`py-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${activeTab === tab ? 'border-brand-600 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-                                }`}
-                        >
-                            {tab === 'overview' && 'Visão Geral'}
-                            {tab === 'itinerary' && 'Roteiro'}
-                            {tab === 'reservations' && 'Reservas'}
-                            {tab === 'participants' && 'Participantes'}
-                            {tab === 'finances' && 'Finanças'}
-                            {tab === 'checklist' && 'Checklist'}
-                        </button>
-                    ))}
-                </div>
-            </div>
+
 
             {/* Content */}
             <div className="p-4 md:p-8 max-w-4xl mx-auto">
