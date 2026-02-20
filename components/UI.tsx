@@ -8,11 +8,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
-export const Button: React.FC<ButtonProps> = ({ 
-  children, variant = 'primary', size = 'md', loading, className = '', disabled, ...props 
+export const Button: React.FC<ButtonProps> = ({
+  children, variant = 'primary', size = 'md', loading, className = '', disabled, ...props
 }) => {
-  const baseStyles = "inline-flex items-center justify-center rounded-xl font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed";
-  
+  const baseStyles = "inline-flex items-center justify-center rounded-xl font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]";
+
   const variants = {
     primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-sm shadow-brand-200 focus:ring-brand-500",
     secondary: "bg-brand-100 text-brand-900 hover:bg-brand-200 focus:ring-brand-500",
@@ -22,14 +22,14 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const sizes = {
-    sm: "px-3 py-1.5 text-xs",
-    md: "px-4 py-2 text-sm",
-    lg: "px-6 py-3 text-base"
+    sm: "px-3 py-2 text-sm min-h-[36px]",
+    md: "px-4 py-2.5 text-sm min-h-[44px]",
+    lg: "px-6 py-3.5 text-base min-h-[48px]"
   };
 
   return (
-    <button 
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`} 
+    <button
+      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
@@ -39,7 +39,7 @@ export const Button: React.FC<ButtonProps> = ({
   );
 };
 
-// --- MODAL ---
+// --- MODAL (Full-screen on mobile) ---
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -48,22 +48,35 @@ interface ModalProps {
 }
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-      <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" 
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      {/* Mobile: slide-up sheet from bottom. Desktop: centered card */}
+      <div className="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-xl overflow-hidden animate-in slide-in-from-bottom duration-300 max-h-[92dvh] sm:max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+          {/* Mobile drag handle */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-gray-300 rounded-full sm:hidden" />
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
+          <button onClick={onClose} className="p-2 -mr-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
             <X size={20} />
           </button>
         </div>
-        <div className="p-6 max-h-[80vh] overflow-y-auto">
+        <div className="p-5 overflow-y-auto flex-1 overscroll-contain">
           {children}
         </div>
       </div>
@@ -100,7 +113,7 @@ export const Badge: React.FC<{ status: string }> = ({ status }) => {
 
 // --- EMPTY STATE ---
 export const EmptyState: React.FC<{ title: string, description: string, icon: React.ElementType, action?: React.ReactNode }> = ({ title, description, icon: Icon, action }) => (
-  <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+  <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
     <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
       <Icon className="w-8 h-8 text-gray-400" />
     </div>
@@ -110,7 +123,7 @@ export const EmptyState: React.FC<{ title: string, description: string, icon: Re
   </div>
 );
 
-// --- TOAST SYSTEM ---
+// --- TOAST SYSTEM (repositioned for mobile bottom nav) ---
 
 export interface ToastProps {
   id: string;
@@ -145,27 +158,27 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[110] flex flex-col gap-2 pointer-events-none">
+      {/* Mobile: above bottom nav (bottom-20). Desktop: bottom-right corner */}
+      <div className="fixed bottom-20 md:bottom-4 left-4 right-4 md:left-auto md:right-4 z-[110] flex flex-col gap-2 pointer-events-none">
         {toasts.map((t) => (
-          <div 
-            key={t.id} 
-            className="pointer-events-auto bg-white border border-gray-100 shadow-lg rounded-xl p-4 w-80 animate-in slide-in-from-right-full fade-in duration-300 flex items-start gap-3"
+          <div
+            key={t.id}
+            className="pointer-events-auto bg-white border border-gray-100 shadow-lg rounded-xl p-4 w-full md:w-80 animate-in slide-in-from-bottom fade-in duration-300 flex items-start gap-3"
           >
-            <div className={`mt-0.5 ${
-              t.type === 'success' ? 'text-green-500' : 
-              t.type === 'error' ? 'text-red-500' : 'text-blue-500'
-            }`}>
+            <div className={`mt-0.5 shrink-0 ${t.type === 'success' ? 'text-green-500' :
+                t.type === 'error' ? 'text-red-500' : 'text-blue-500'
+              }`}>
               {t.type === 'success' && <CheckCircle size={18} />}
               {t.type === 'error' && <AlertCircle size={18} />}
               {t.type === 'info' && <Info size={18} />}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               {t.title && <h4 className="text-sm font-semibold text-gray-900">{t.title}</h4>}
               <p className="text-sm text-gray-600 leading-snug">{t.message}</p>
             </div>
-            <button 
-              onClick={() => removeToast(t.id)} 
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+            <button
+              onClick={() => removeToast(t.id)}
+              className="text-gray-400 hover:text-gray-600 transition-colors shrink-0 p-1"
             >
               <X size={16} />
             </button>

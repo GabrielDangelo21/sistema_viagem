@@ -16,10 +16,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50 text-slate-900 font-sans overflow-hidden">
+    <div className="flex h-[100dvh] bg-gray-50 text-slate-900 font-sans overflow-hidden">
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
+      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 shrink-0">
         <div className="p-6">
           <h1 className="text-2xl font-bold text-brand-600 tracking-tight flex items-center gap-2">
             <Map className="w-8 h-8" />
@@ -55,9 +55,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
         </div>
       </main>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-2 safe-area-bottom">
-        <div className="flex justify-between items-center">
+      {/* Mobile Bottom Nav - Enhanced with safe area */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200/80 z-50 px-6 pt-2 pb-2 safe-area-bottom">
+        <div className="flex justify-around items-center">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentRoute === item.id;
@@ -65,11 +65,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id as RouteName)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${isActive ? 'text-brand-600' : 'text-gray-400'
+                className={`flex flex-col items-center gap-0.5 py-1 px-4 rounded-xl transition-all ${isActive
+                  ? 'text-brand-600'
+                  : 'text-gray-400 active:text-gray-600'
                   }`}
               >
-                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[10px] font-medium">{item.label}</span>
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
+                <span className={`text-[10px] ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+                {isActive && <div className="w-4 h-0.5 bg-brand-500 rounded-full mt-0.5" />}
               </button>
             );
           })}

@@ -331,7 +331,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     return (
         <div className="pb-20 md:pb-8">
             {/* Header */}
-            <div className="relative h-48 md:h-64 bg-gray-900 overflow-hidden">
+            <div className="relative h-44 md:h-64 bg-gray-900 overflow-hidden">
                 {trip.coverImageUrl ? (
                     <>
                         <img src={trip.coverImageUrl} alt={trip.name} className="absolute inset-0 w-full h-full object-cover opacity-80" />
@@ -346,7 +346,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <ArrowLeft size={20} />
                     </button>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
+                <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 text-white">
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-2 mb-2">
@@ -356,7 +356,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                     {formatDate(trip.startDate, 'range-start')} - {formatDate(trip.endDate, 'range-end')}
                                 </span>
                             </div>
-                            <h1 className="text-3xl font-bold shadow-sm">{trip.name}</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold shadow-sm">{trip.name}</h1>
                             <div className="flex items-center gap-1 text-gray-200 mt-1">
                                 <MapPin size={16} />
                                 <span className="text-sm font-medium">{trip.destination}</span>
@@ -378,7 +378,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
             {/* Tabs */}
             <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm px-4 md:px-8">
-                <div className="flex gap-6 overflow-x-auto no-scrollbar">
+                <div className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar scroll-fade-r">
                     {['itinerary', 'reservations', 'participants', 'finances'].map((tab) => (
                         <button
                             key={tab}
@@ -637,7 +637,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             <option value="GBP">Libra (GBP)</option>
                         </select>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Início</label>
                             <input type="date" required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -681,7 +681,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             onChange={e => setNewActivity({ ...newActivity, title: e.target.value })}
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Horário</label>
                             <input
@@ -718,7 +718,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     )}
 
                     {/* Type & Status */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
                             <select
@@ -756,7 +756,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <input required placeholder="Ex: Voo para Londres" className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                             value={reservationForm.title} onChange={e => setReservationForm({ ...reservationForm, title: e.target.value })} />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Provedor</label>
                             <input placeholder="Ex: Latam" className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -770,7 +770,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     </div>
 
                     {/* Dates */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Início (Obrigatório)</label>
                             <input type="datetime-local" required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -784,7 +784,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     </div>
 
                     {/* Price & Address */}
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Moeda</label>
                             <select className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"

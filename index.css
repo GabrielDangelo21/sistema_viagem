@@ -5,6 +5,29 @@
 @layer base {
   body {
     @apply bg-slate-50 antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Ensure minimum touch targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better mobile inputs */
+  input, select, textarea {
+    @apply text-base;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+}
+
+@layer utilities {
+  /* Safe area padding for iOS notch/home indicator */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
   }
 }
 
@@ -15,4 +38,10 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Fade edges for horizontal scroll */
+.scroll-fade-r {
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
 }

@@ -148,15 +148,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
   };
 
   return (
-    <div className="p-4 md:p-10 space-y-10 animate-in fade-in duration-500 max-w-7xl mx-auto font-sans">
+    <div className="p-4 md:p-10 space-y-8 md:space-y-10 animate-in fade-in duration-500 max-w-7xl mx-auto font-sans">
 
       {/* 1. Header & Greeting */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 pb-2">
         <div className="space-y-1">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight">
             Olá, {user?.name.split(' ')[0]} 👋
           </h1>
-          <p className="text-gray-500 text-lg">
+          <p className="text-gray-500 text-base md:text-lg">
             {nextTrip
               ? `Tudo pronto para ${nextTrip.destination}?`
               : 'Vamos planejar sua próxima aventura?'}
@@ -175,7 +175,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
       ) : nextTrip ? (
         <section
           onClick={() => onNavigate('trip-details', { id: nextTrip.id })}
-          className="group relative h-72 md:h-80 w-full rounded-3xl overflow-hidden cursor-pointer shadow-xl shadow-gray-200/50 transition-all hover:shadow-2xl hover:scale-[1.002] ring-1 ring-black/5"
+          className="group relative h-56 md:h-80 w-full rounded-2xl md:rounded-3xl overflow-hidden cursor-pointer shadow-xl shadow-gray-200/50 transition-all hover:shadow-2xl hover:scale-[1.002] ring-1 ring-black/5"
         >
           {/* Background */}
           {nextTrip.coverImageUrl ? (
@@ -193,7 +193,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
           {/* Content */}
-          <div className="absolute inset-0 p-6 md:p-10 flex flex-col justify-end text-white">
+          <div className="absolute inset-0 p-5 md:p-10 flex flex-col justify-end text-white">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="space-y-3 md:space-y-4 max-w-2xl">
                 <div className="flex items-center gap-3">
@@ -203,7 +203,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                   </span>
                 </div>
 
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white drop-shadow-md group-hover:translate-x-1 transition-transform duration-300">
+                <h2 className="text-2xl md:text-5xl font-bold tracking-tight text-white drop-shadow-md group-hover:translate-x-1 transition-transform duration-300">
                   {nextTrip.name}
                 </h2>
 
@@ -229,7 +229,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
           </div>
         </section>
       ) : (
-        <div className="bg-white border-2 border-dashed border-gray-200 rounded-3xl p-16 flex flex-col items-center justify-center text-center hover:border-brand-300 hover:bg-brand-50/30 transition-all group cursor-pointer" onClick={() => onNavigate('trips')}>
+        <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl md:rounded-3xl p-8 md:p-16 flex flex-col items-center justify-center text-center hover:border-brand-300 hover:bg-brand-50/30 transition-all group cursor-pointer" onClick={() => onNavigate('trips')}>
           <div className="w-20 h-20 bg-brand-50 text-brand-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm">
             <Briefcase size={32} />
           </div>
@@ -340,15 +340,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                   <div
                     key={item.id}
                     className={`flex items-center gap-4 p-3 rounded-2xl transition-all border group ${item.isChecked
-                        ? 'bg-gray-50/50 border-transparent opacity-70'
-                        : 'bg-white border-gray-100 hover:border-brand-200 hover:shadow-sm'
+                      ? 'bg-gray-50/50 border-transparent opacity-70'
+                      : 'bg-white border-gray-100 hover:border-brand-200 hover:shadow-sm'
                       }`}
                   >
                     <div
                       onClick={() => toggleChecklist(item.id, item.isChecked)}
                       className={`w-6 h-6 rounded-lg border cursor-pointer flex items-center justify-center transition-all duration-200 shrink-0 ${item.isChecked
-                          ? 'bg-brand-500 border-brand-500'
-                          : 'border-gray-300 bg-white group-hover:border-brand-400'
+                        ? 'bg-brand-500 border-brand-500'
+                        : 'border-gray-300 bg-white group-hover:border-brand-400'
                         }`}>
                       <Check size={14} className={`text-white transition-transform duration-200 ${item.isChecked ? 'scale-100' : 'scale-0'}`} />
                     </div>
