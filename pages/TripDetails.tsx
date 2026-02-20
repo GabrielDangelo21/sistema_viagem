@@ -446,13 +446,6 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                 </button>
                             </div>
                         </div>
-                        {/* Upgrade Hook — hidden on small screens */}
-                        <button
-                            onClick={() => onNavigate('upgrade')}
-                            className="hidden sm:inline-flex bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full border border-white/30 font-medium"
-                        >
-                            Compartilhar Viagem (Pro)
-                        </button>
                     </div>
                 </div>
             </div>
