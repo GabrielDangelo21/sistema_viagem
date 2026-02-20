@@ -283,7 +283,7 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
                     </div>
                     <button
                       onClick={(e) => handleDeleteClick(e, trip.id)}
-                      className="p-1.5 bg-black/20 hover:bg-red-500 text-white rounded-full transition-colors backdrop-blur-sm"
+                      className="w-8 h-8 flex items-center justify-center shrink-0 bg-black/20 hover:bg-red-500 text-white rounded-full transition-colors backdrop-blur-sm"
                       title="Excluir viagem"
                     >
                       <Trash2 size={14} />
