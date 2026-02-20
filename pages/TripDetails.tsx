@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { supabase } from '../lib/supabase';
 import { handleApiError } from '../services/handleApiError';
-import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus, ChecklistItem } from '../types';
+import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus, ChecklistItem, Participant } from '../types';
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
-import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2, Check, List } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2, Check, List, Users, Wallet } from 'lucide-react';
 
 const TRIP_TYPES = [
     { value: 'lazer', label: 'Lazer', emoji: '🏖️', color: 'bg-blue-100 text-blue-700' },
@@ -21,15 +21,19 @@ import { FinanceModule } from '../components/FinanceModule';
 
 interface TripDetailsProps {
     tripId?: string;
-    initialTab?: 'itinerary' | 'reservations' | 'participants' | 'finances' | 'checklist';
+    initialTab?: 'overview' | 'itinerary' | 'reservations' | 'participants' | 'finances' | 'checklist';
     onNavigate: (route: RouteName, params?: any) => void;
 }
 
 export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, onNavigate }) => {
     const [data, setData] = useState<{ trip: TripUI, days: ItineraryDay[], activities: Activity[], reservations: Reservation[] } | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'itinerary' | 'reservations' | 'participants' | 'finances' | 'checklist'>(initialTab || 'itinerary');
+    const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'reservations' | 'participants' | 'finances' | 'checklist'>(initialTab || 'overview');
     const { toast } = useToast();
+
+    // State for overview
+    const [overviewData, setOverviewData] = useState<{ participants: Participant[], balances: any } | null>(null);
+    const [overviewLoading, setOverviewLoading] = useState(false);
 
     // Modals
     const [modalOpen, setModalOpen] = useState<'activity' | 'reservation' | 'delete-res' | 'edit-trip' | null>(null);
@@ -72,9 +76,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         }
     }, [initialTab]);
 
-    // Lazy-load checklist when tab is activated
+    // Lazy-load checklist and overview data
     useEffect(() => {
-        if (activeTab === 'checklist' && data && !checklistLoaded) {
+        if ((activeTab === 'checklist' || activeTab === 'overview') && data && !checklistLoaded) {
             const loadChecklist = async () => {
                 try {
                     const items = await api.getChecklist(data.trip.id);
@@ -87,6 +91,26 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             loadChecklist();
         }
     }, [activeTab, data, checklistLoaded]);
+
+    useEffect(() => {
+        if (activeTab === 'overview' && data && !overviewData && !overviewLoading) {
+            setOverviewLoading(true);
+            const loadOverview = async () => {
+                try {
+                    const [p, b] = await Promise.all([
+                        api.getParticipants(data.trip.id),
+                        api.getBalances(data.trip.id).catch(() => ({ balances: {}, suggestedPayments: [] }))
+                    ]);
+                    setOverviewData({ participants: p, balances: b });
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    setOverviewLoading(false);
+                }
+            };
+            loadOverview();
+        }
+    }, [activeTab, data, overviewData, overviewLoading]);
 
     const fetchData = async (id: string) => {
         setLoading(true);
@@ -430,13 +454,14 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             {/* Tabs */}
             <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm px-4 md:px-8">
                 <div className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar scroll-fade-r">
-                    {['itinerary', 'reservations', 'participants', 'finances', 'checklist'].map((tab) => (
+                    {['overview', 'itinerary', 'reservations', 'participants', 'finances', 'checklist'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab as any)}
                             className={`py-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-colors ${activeTab === tab ? 'border-brand-600 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                                 }`}
                         >
+                            {tab === 'overview' && 'Visão Geral'}
                             {tab === 'itinerary' && 'Roteiro'}
                             {tab === 'reservations' && 'Reservas'}
                             {tab === 'participants' && 'Participantes'}
@@ -449,6 +474,176 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
             {/* Content */}
             <div className="p-4 md:p-8 max-w-4xl mx-auto">
+
+                {/* OVERVIEW TAB */}
+                {activeTab === 'overview' && (
+                    <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
+                        {/* Greeting / Intro replacing the big hero button need */}
+                        <div className="space-y-1 mb-8">
+                            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+                                Tudo pronto para {trip.destination}?
+                            </h2>
+                            <p className="text-gray-500 text-base">
+                                Veja o resumo da sua viagem abaixo ou acesse as ferramentas para organizá-la.
+                            </p>
+                        </div>
+
+                        {/* Quick Actions Grid */}
+                        <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+                            {[
+                                { icon: Calendar, label: 'Roteiro', sub: `${days.length} dias`, action: () => setActiveTab('itinerary'), color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
+                                { icon: Box, label: 'Reservas', sub: `${reservations.length} itens`, action: () => setActiveTab('reservations'), color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100' },
+                                { icon: Users, label: 'Participantes', sub: overviewData ? `${overviewData.participants.length} pessoas` : 'Carregando...', action: () => setActiveTab('participants'), color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100' },
+                                { icon: Wallet, label: 'Finanças', sub: 'Gastos e Saldos', action: () => setActiveTab('finances'), color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-100' },
+                                { icon: List, label: 'Checklists', sub: checklistLoaded ? `${checklistItems.filter(i => i.isChecked).length}/${checklistItems.length}` : 'Carregando...', action: () => setActiveTab('checklist'), color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
+                            ].map((item, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={item.action}
+                                    className={`group relative bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-left flex flex-col gap-2 hover:ring-1 hover:ring-brand-100/50`}
+                                >
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${item.bg} ${item.color} ${item.border} border group-hover:scale-110 transition-transform shrink-0`}>
+                                        <item.icon size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="block font-bold text-gray-900 text-sm md:text-[15px] leading-tight mb-0.5 group-hover:text-brand-700 transition-colors truncate">{item.label}</span>
+                                        <span className="block text-[11px] font-medium text-gray-400 group-hover:text-gray-500 truncate">{item.sub}</span>
+                                    </div>
+                                </button>
+                            ))}
+                        </section>
+
+                        {/* Widgets Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-6">
+
+                            {/* Roteiro Widget */}
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-5 md:col-span-2 flex flex-col">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                        <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600"><Calendar size={18} /></div>
+                                        Próximas Atividades
+                                    </h3>
+                                    <button onClick={() => setActiveTab('itinerary')} className="text-sm font-medium text-brand-600 hover:underline">Ver roteiro completo</button>
+                                </div>
+                                <div className="space-y-2 flex-1 relative min-h-[120px]">
+                                    {activities.slice(0, 3).map(act => (
+                                        <div key={act.id} className="flex gap-3 p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-colors">
+                                            <div className="flex flex-col items-center justify-center w-10 shrink-0 text-gray-400 text-xs font-medium border-r border-gray-100 pr-3">
+                                                {act.timeStart || <Clock size={14} />}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <h4 className="font-semibold text-gray-800 text-sm truncate">{act.title}</h4>
+                                                {act.locationName && <p className="text-xs text-gray-500 mt-0.5 truncate">{act.locationName}</p>}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {activities.length === 0 && <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">Nenhuma atividade planejada.</div>}
+                                </div>
+                            </div>
+
+                            {/* Checklist Widget */}
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-5 flex flex-col h-full col-span-1">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                        <div className="p-1.5 bg-orange-50 rounded-lg text-orange-600"><List size={18} /></div>
+                                        Checklist
+                                    </h3>
+                                    <button onClick={() => setActiveTab('checklist')} className="text-sm font-medium text-brand-600 hover:underline">Ver tudo</button>
+                                </div>
+                                <div className="space-y-2 flex-auto overflow-hidden min-h-[120px] relative">
+                                    {checklistLoaded ? checklistItems.slice(0, 4).map((item, idx) => (
+                                        <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg border border-gray-50 bg-gray-50/50">
+                                            <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${item.isChecked ? 'bg-brand-500 border-brand-500' : 'border-gray-300 bg-white'}`}>
+                                                <Check size={12} className={`text-white transition-opacity ${item.isChecked ? 'opacity-100' : 'opacity-0'}`} />
+                                            </div>
+                                            <span className={`text-sm truncate ${item.isChecked ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{item.text}</span>
+                                        </div>
+                                    )) : <div className="animate-pulse space-y-2">{[1, 2, 3].map(i => <div key={i} className="h-8 bg-gray-100 rounded" />)}</div>}
+                                    {checklistLoaded && checklistItems.length === 0 && <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">Lista vazia.</div>}
+                                </div>
+                            </div>
+
+                            {/* Reservas Widget */}
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-5 md:col-span-2 flex flex-col">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                        <div className="p-1.5 bg-purple-50 rounded-lg text-purple-600"><Plane size={18} /></div>
+                                        Reservas
+                                    </h3>
+                                    <button onClick={() => setActiveTab('reservations')} className="text-sm font-medium text-brand-600 hover:underline">Ver todas</button>
+                                </div>
+                                <div className="space-y-2 relative min-h-[120px] flex-1">
+                                    {reservations.slice(0, 3).map(res => (
+                                        <div key={res.id} className="flex gap-3 items-center p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-colors">
+                                            <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                                                {React.createElement(getReservationIcon(res.type), { size: 16 })}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-semibold text-gray-800 text-sm truncate">{res.title}</h4>
+                                                <p className="text-xs text-gray-500 truncate">{formatDate(res.startDateTime, 'datetime')} • {res.provider || getReservationLabel(res.type)}</p>
+                                            </div>
+                                            <div className="shrink-0">
+                                                <Badge status={res.status} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {reservations.length === 0 && <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">Nenhuma reserva adicionada.</div>}
+                                </div>
+                            </div>
+
+                            {/* Participantes Widget */}
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-5 flex flex-col col-span-1">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                        <div className="p-1.5 bg-green-50 rounded-lg text-green-600"><Users size={18} /></div>
+                                        Viajantes
+                                    </h3>
+                                    <button onClick={() => setActiveTab('participants')} className="text-sm font-medium text-brand-600 hover:underline">Detalhes</button>
+                                </div>
+                                <div className="space-y-2 relative min-h-[120px] flex-1">
+                                    {overviewLoading ? <div className="animate-pulse space-y-2">{[1, 2].map(i => <div key={i} className="h-10 bg-gray-100 rounded-xl" />)}</div> : overviewData ? overviewData.participants.slice(0, 4).map((p: any) => (
+                                        <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:bg-gray-50 transition-colors">
+                                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-200 shadow-sm">
+                                                {p.name.substring(0, 2).toUpperCase()}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-gray-800 truncate leading-snug">{p.name}</p>
+                                                {p.isOwner && <span className="text-[10px] font-semibold text-teal-600 uppercase tracking-wide">Organizador</span>}
+                                            </div>
+                                        </div>
+                                    )) : null}
+                                </div>
+                            </div>
+
+                            {/* Finanças Widget */}
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-5 md:col-span-full flex flex-col">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                        <div className="p-1.5 bg-teal-50 rounded-lg text-teal-600"><Wallet size={18} /></div>
+                                        Orçamento e Saldos
+                                    </h3>
+                                    <button onClick={() => setActiveTab('finances')} className="text-sm font-medium text-brand-600 hover:underline">Gerenciar Finanças</button>
+                                </div>
+                                <div className="flex gap-4 overflow-x-auto pb-2 min-h-[80px] items-center no-scrollbar relative">
+                                    {overviewLoading ? <div className="text-sm text-gray-400 absolute inset-0 flex items-center justify-center">Carregando dados financeiros...</div> : overviewData && overviewData.balances?.balances && Object.keys(overviewData.balances.balances).length > 0 ? Object.keys(overviewData.balances.balances).map(pid => {
+                                        const pName = overviewData.participants.find((x: any) => x.id === pid)?.name || 'Anônimo';
+                                        const val = overviewData.balances.balances[pid];
+                                        if (Math.abs(val) < 0.01) return null;
+                                        return (
+                                            <div key={pid} className={`shrink-0 p-3 rounded-xl border min-w-[150px] flex flex-col gap-1 items-center justify-center text-center transition-colors ${val > 0 ? 'bg-green-50/50 border-green-100' : 'bg-red-50/50 border-red-100'}`}>
+                                                <span className="text-sm font-semibold text-gray-700 truncate w-full">{pName}</span>
+                                                <span className={`text-base font-bold ${val > 0 ? 'text-green-700' : 'text-red-700'}`}>
+                                                    {val > 0 ? `+ ${trip.defaultCurrency} ${val.toFixed(2)}` : `- ${trip.defaultCurrency} ${Math.abs(val).toFixed(2)}`}
+                                                </span>
+                                            </div>
+                                        )
+                                    }) : <div className="text-sm text-gray-400 absolute inset-0 flex items-center justify-center">Nenhuma movimentação financeira.</div>}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
 
                 {/* ITINERARY TAB */}
                 {activeTab === 'itinerary' && (

@@ -10,8 +10,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNavigate }) => {
   const navItems = [
-    { id: 'dashboard', label: 'Início', icon: Home },
-    { id: 'trips', label: 'Viagens', icon: Map },
+    { id: 'trips', label: 'Início', icon: Home },
     { id: 'profile', label: 'Perfil', icon: UserIcon },
   ];
 

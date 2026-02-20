@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
-import { Dashboard } from './pages/Dashboard';
 import { Trips } from './pages/Trips';
 import { TripDetails } from './pages/TripDetails';
 import { Upgrade } from './pages/Upgrade';
@@ -14,7 +13,7 @@ import { ToastProvider } from './components/UI';
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>({
-    currentRoute: 'dashboard',
+    currentRoute: 'trips',
   });
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [session, setSession] = useState<any>(null);
@@ -79,8 +78,6 @@ export default function App() {
 
   const renderContent = () => {
     switch (appState.currentRoute) {
-      case 'dashboard':
-        return <Dashboard onNavigate={navigate} user={user} />;
       case 'trips':
         return <Trips onNavigate={navigate} user={user} />;
       case 'trip-details':
@@ -99,7 +96,7 @@ export default function App() {
           />
         );
       default:
-        return <Dashboard onNavigate={navigate} user={user} />;
+        return <Trips onNavigate={navigate} user={user} />;
     }
   };
 
