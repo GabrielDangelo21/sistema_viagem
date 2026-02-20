@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
+import { supabase } from '../lib/supabase';
 import { handleApiError } from '../services/handleApiError';
 import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus } from '../types';
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
-import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 
 import { ParticipantsList } from '../components/ParticipantsList';
 import { FinanceModule } from '../components/FinanceModule';
@@ -107,23 +108,39 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         }
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            // 2MB Limit Check
-            if (file.size > 2 * 1024 * 1024) {
-                toast({ message: 'A imagem deve ter no máximo 2MB.', type: 'error' });
-                if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
-                }
-                return;
-            }
+    const [uploadingCover, setUploadingCover] = useState(false);
 
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setEditTripForm(prev => ({ ...prev, coverImageUrl: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+            toast({ message: 'A imagem deve ter no máximo 2MB.', type: 'error' });
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        setUploadingCover(true);
+        try {
+            const ext = file.name.split('.').pop() || 'jpg';
+            const filePath = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('covers')
+                .upload(filePath, file, { upsert: true });
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('covers')
+                .getPublicUrl(filePath);
+
+            setEditTripForm(prev => ({ ...prev, coverImageUrl: publicUrl }));
+            toast({ message: 'Imagem enviada!', type: 'success' });
+        } catch (err: any) {
+            toast({ message: err.message || 'Erro ao enviar imagem', type: 'error' });
+        } finally {
+            setUploadingCover(false);
         }
     };
 
@@ -331,7 +348,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     return (
         <div className="pb-20 md:pb-8">
             {/* Header */}
-            <div className="relative h-44 md:h-64 bg-gray-900 overflow-hidden">
+            <div className="relative h-56 md:h-64 bg-gray-900 overflow-hidden">
                 {trip.coverImageUrl ? (
                     <>
                         <img src={trip.coverImageUrl} alt={trip.name} className="absolute inset-0 w-full h-full object-cover opacity-80" />
@@ -341,34 +358,34 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900" />
                 )}
 
-                <div className="absolute top-4 left-4 z-10">
-                    <button onClick={() => onNavigate('trips')} className="bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-sm transition-colors">
+                <div className="absolute top-3 left-3 z-10 safe-area-top">
+                    <button onClick={() => onNavigate('trips')} className="bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full backdrop-blur-sm transition-colors">
                         <ArrowLeft size={20} />
                     </button>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 text-white">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
+                <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8 text-white">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
                                 <Badge status={trip.status} />
-                                <span className="text-sm opacity-90 flex items-center gap-1 font-medium bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
-                                    <Calendar size={14} />
+                                <span className="text-xs opacity-90 flex items-center gap-1 font-medium bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                                    <Calendar size={12} />
                                     {formatDate(trip.startDate, 'range-start')} - {formatDate(trip.endDate, 'range-end')}
                                 </span>
                             </div>
-                            <h1 className="text-2xl md:text-3xl font-bold shadow-sm">{trip.name}</h1>
-                            <div className="flex items-center gap-1 text-gray-200 mt-1">
-                                <MapPin size={16} />
+                            <h1 className="text-2xl md:text-3xl font-bold leading-tight">{trip.name}</h1>
+                            <div className="flex items-center gap-1.5 text-gray-200">
+                                <MapPin size={14} />
                                 <span className="text-sm font-medium">{trip.destination}</span>
-                                <button onClick={handleEditTripClick} className="ml-2 p-1 hover:bg-white/20 rounded-full transition-colors" title="Editar Viagem">
+                                <button onClick={handleEditTripClick} className="ml-1 p-1.5 hover:bg-white/20 rounded-full transition-colors" title="Editar Viagem">
                                     <Edit2 size={14} />
                                 </button>
                             </div>
                         </div>
-                        {/* Upgrade Hook */}
+                        {/* Upgrade Hook — hidden on small screens */}
                         <button
                             onClick={() => onNavigate('upgrade')}
-                            className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full border border-white/30 font-medium"
+                            className="hidden sm:inline-flex bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full border border-white/30 font-medium"
                         >
                             Compartilhar Viagem (Pro)
                         </button>

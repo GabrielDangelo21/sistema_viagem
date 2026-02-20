@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
+import { supabase } from '../lib/supabase';
 import { handleApiError } from '../services/handleApiError';
 import { TripUI, CurrentUser, RouteName } from '../types';
 import { Button, Modal, Badge, useToast } from '../components/UI';
-import { Plus, Archive, MapPin, Calendar, Lock, Trash2, AlertTriangle, XCircle, Image as ImageIcon, X } from 'lucide-react';
+import { Plus, Archive, MapPin, Calendar, Lock, Trash2, AlertTriangle, XCircle, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 
 
 interface TripsProps {
@@ -83,23 +84,39 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
     });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // 2MB Limit Check
-      if (file.size > 2 * 1024 * 1024) {
-        toast({ message: 'A imagem deve ter no máximo 2MB.', type: 'error' });
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        return;
-      }
+  const [uploadingCover, setUploadingCover] = useState(false);
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewTrip(prev => ({ ...prev, coverImageUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ message: 'A imagem deve ter no máximo 2MB.', type: 'error' });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setUploadingCover(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const filePath = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('covers')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('covers')
+        .getPublicUrl(filePath);
+
+      setNewTrip(prev => ({ ...prev, coverImageUrl: publicUrl }));
+      toast({ message: 'Imagem enviada!', type: 'success' });
+    } catch (err: any) {
+      toast({ message: err.message || 'Erro ao enviar imagem', type: 'error' });
+    } finally {
+      setUploadingCover(false);
     }
   };
 
@@ -299,7 +316,9 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
           {/* Cover Image Upload */}
           <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
             <div className="w-16 h-16 rounded-lg bg-white border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 relative group">
-              {newTrip.coverImageUrl ? (
+              {uploadingCover ? (
+                <Loader2 className="text-brand-500 animate-spin" size={24} />
+              ) : newTrip.coverImageUrl ? (
                 <>
                   <img src={newTrip.coverImageUrl} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   <button type="button" onClick={handleRemoveImage} className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

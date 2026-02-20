@@ -4,6 +4,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string | null;
+  timezone: string;
+  locale: string;
   createdAt: string; // ISO_DATETIME
 }
 

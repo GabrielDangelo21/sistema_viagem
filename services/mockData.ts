@@ -20,15 +20,17 @@ export const MOCK_USER: User = {
   id: 'u1',
   name: 'Alex Pereira',
   email: 'alex@tripnest.com',
+  timezone: 'America/Sao_Paulo',
+  locale: 'pt-BR',
   createdAt: subDays(today, 120).toISOString(),
 };
 
 export const MOCK_WORKSPACE: Workspace = {
-    id: 'w1',
-    name: 'Personal Workspace',
-    ownerUserId: 'u1',
-    planId: 'free',
-    createdAt: subDays(today, 120).toISOString(),
+  id: 'w1',
+  name: 'Personal Workspace',
+  ownerUserId: 'u1',
+  planId: 'free',
+  createdAt: subDays(today, 120).toISOString(),
 }
 
 // Mock 1: Future Trip (Planned)

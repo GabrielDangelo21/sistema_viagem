@@ -35,12 +35,25 @@ export const api = {
   getMe: async (): Promise<CurrentUser> => {
     const headers = await getAuthHeaders();
     const res = await fetch(`${API_URL}/me`, { headers });
-    // Backend returns { user, workspace }
     const data = await handleResponse(res);
     return {
       ...data.user,
       plan: data.workspace.planId
     };
+  },
+
+  updateMe: async (patch: { name?: string; avatarUrl?: string | null; timezone?: string; locale?: string }): Promise<CurrentUser> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/me`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(patch)
+    });
+    const data = await handleResponse(res);
+    return data.user;
   },
 
   // --- TRIPS ---

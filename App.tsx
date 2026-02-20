@@ -5,6 +5,7 @@ import { Trips } from './pages/Trips';
 import { TripDetails } from './pages/TripDetails';
 import { Upgrade } from './pages/Upgrade';
 import { Login } from './pages/Login';
+import { Profile } from './pages/Profile';
 import { AppState, RouteName, CurrentUser } from './types';
 import { api } from './services/api';
 import { supabase } from './lib/supabase';
@@ -90,29 +91,12 @@ export default function App() {
         />;
       case 'profile':
         return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Perfil</h1>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 text-2xl font-bold">
-                  {user?.name.charAt(0)}
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold">{user?.name}</h2>
-                  <p className="text-gray-500">{user?.email}</p>
-                  <span className="inline-block px-2 py-0.5 mt-2 bg-gray-100 text-gray-600 text-xs rounded-full uppercase font-bold tracking-wider">
-                    {user?.plan} Plan
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="text-red-500 font-medium text-sm hover:underline"
-              >
-                Sair da conta
-              </button>
-            </div>
-          </div>
+          <Profile
+            user={user}
+            onUserUpdate={(updated) => setUser(updated)}
+            onLogout={handleLogout}
+            onNavigate={navigate}
+          />
         );
       default:
         return <Dashboard onNavigate={navigate} user={user} />;
