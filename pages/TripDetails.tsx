@@ -316,10 +316,13 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
     useEffect(() => {
         const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-        if (!apiKey || (window as any).google) return;
+        if (!apiKey || document.querySelector('script[src*="googleapis.com/maps/api/js"]')) return;
+
+        // Limpa o erro do "google is not defined" colocando um callback global
+        (window as any).initMap = () => { };
 
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=pt-BR`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=pt-BR&callback=initMap`;
         script.async = true;
         script.defer = true;
         document.head.appendChild(script);
@@ -346,6 +349,11 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     setLocationSuggestions(predictions);
                     setShowLocationDropdown(true);
                 } else {
+                    console.error('Google Maps Prediction Status:', status);
+                    // Avisamos o usuário se a chave der REQUEST_DENIED ou erro de billing
+                    if (status !== google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+                        toast({ message: `Erro no Autocomplete do Google: ${status}. Verifique sua Chave API.`, type: 'error' });
+                    }
                     setLocationSuggestions([]);
                 }
                 setIsSearchingLocation(false);
@@ -360,6 +368,15 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         const value = e.target.value;
         setLocationQuery(value);
         setNewActivity(prev => ({ ...prev, locationName: value }));
+
+        if (value.length > 0) {
+            setShowLocationDropdown(true);
+            setIsSearchingLocation(true); // Exibe feedback de "buscando" de cara
+        } else {
+            setShowLocationDropdown(false);
+            setLocationSuggestions([]);
+            return;
+        }
 
         if (locationTimeoutRef.current) clearTimeout(locationTimeoutRef.current);
 
@@ -406,6 +423,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     title: newActivity.title || 'Nova Atividade',
                     timeStart: newActivity.timeStart,
                     locationName: newActivity.locationName,
+                    latitude: newActivity.latitude,
+                    longitude: newActivity.longitude,
                 });
                 toast({ message: 'Atividade atualizada!', type: 'success' });
             } else {
@@ -414,6 +433,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     title: newActivity.title || 'Nova Atividade',
                     timeStart: newActivity.timeStart,
                     locationName: newActivity.locationName,
+                    latitude: newActivity.latitude,
+                    longitude: newActivity.longitude,
                 });
                 toast({ message: 'Atividade adicionada!', type: 'success' });
             }
@@ -1209,34 +1230,38 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                     if (locationSuggestions.length > 0) setShowLocationDropdown(true);
                                 }}
                             />
-                            {/* Dropdown de Sugestões */}
+                            {/* Dropdown de Sugestões Simplificado e Robusto */}
                             {showLocationDropdown && (
-                                <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                    {isSearchingLocation ? (
-                                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                            Buscando locais...
+                                <div className="mt-2 w-full overflow-hidden rounded-md border-2 border-brand-500 bg-white shadow-md z-50">
+                                    {!(window as any).google ? (
+                                        <div className="p-3 text-red-600 bg-red-50 font-bold">
+                                            ⚠️ Google Maps não carregado!
+                                        </div>
+                                    ) : isSearchingLocation ? (
+                                        <div className="p-3 text-blue-600 bg-blue-50">
+                                            ⏳ Buscando no Google...
                                         </div>
                                     ) : locationSuggestions.length === 0 ? (
-                                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-                                            Nenhum local encontrado.
+                                        <div className="p-3 text-gray-700 bg-gray-50">
+                                            ❌ Nenhum local encontrado pela API.
                                         </div>
                                     ) : (
-                                        locationSuggestions.map((prediction: any, idx) => (
-                                            <div
-                                                key={prediction.place_id || idx}
-                                                className="relative cursor-pointer select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-brand-50 hover:text-brand-900"
-                                                onClick={() => handleLocationSelect(prediction)}
-                                            >
-                                                <div className="flex flex-col">
-                                                    <span className="block truncate font-medium">
+                                        <div className="max-h-60 overflow-y-auto">
+                                            {locationSuggestions.map((prediction: any, idx) => (
+                                                <div
+                                                    key={prediction.place_id || idx}
+                                                    className="cursor-pointer border-b border-gray-100 p-3 hover:bg-brand-50"
+                                                    onClick={() => handleLocationSelect(prediction)}
+                                                >
+                                                    <div className="font-semibold text-gray-900">
                                                         {prediction.structured_formatting.main_text}
-                                                    </span>
-                                                    <span className="block truncate text-xs text-gray-500">
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
                                                         {prediction.structured_formatting.secondary_text}
-                                                    </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                             )}
