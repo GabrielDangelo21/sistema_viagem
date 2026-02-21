@@ -53,7 +53,9 @@ export async function activitiesRoutes(app: FastifyInstance) {
         if (!finalLat && !finalLng && (data.address || data.locationName)) {
             try {
                 // Tenta geocodificar pelo endereço ou nome do local via Nominatim (OpenStreetMap)
-                const query = encodeURIComponent(data.address || data.locationName || '');
+                // Usamos o destino da viagem como hint de região para o geocoder ser mais preciso
+                const searchQuery = `${data.address || data.locationName || ''}, ${day.trip.destination}`;
+                const query = encodeURIComponent(searchQuery);
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`, {
                     headers: { 'User-Agent': 'TravelSystemApp/1.0' }
                 });
@@ -171,7 +173,8 @@ export async function activitiesRoutes(app: FastifyInstance) {
 
         if (!finalLat && !finalLng && (data.address || data.locationName) && (data.address !== activity.address || data.locationName !== activity.locationName)) {
             try {
-                const query = encodeURIComponent(data.address || data.locationName || '');
+                const searchQuery = `${data.address || data.locationName || ''}, ${activity.day.trip.destination}`;
+                const query = encodeURIComponent(searchQuery);
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`, {
                     headers: { 'User-Agent': 'TravelSystemApp/1.0' }
                 });

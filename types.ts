@@ -59,12 +59,12 @@ export interface Activity {
   timeEnd?: string; // HH:mm
   locationName?: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
   mapUrl?: string;
   cost?: number;
   currency?: string;
   notes?: string;
-  latitude?: number;
-  longitude?: number;
   orderIndex: number;
   createdAt: string; // ISO_DATETIME
   updatedAt: string; // ISO_DATETIME

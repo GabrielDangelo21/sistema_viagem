@@ -71,6 +71,13 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
     const [deletingActivityId, setDeletingActivityId] = useState<string | null>(null);
 
+    // Autocomplete State
+    const [locationQuery, setLocationQuery] = useState('');
+    const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+    const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+    const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+    const locationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     // File Input Ref for Edit Trip
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -270,6 +277,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const handleNewActivity = () => {
         setEditingActivityId(null);
         setNewActivity({ title: '' });
+        setLocationQuery('');
+        setLocationSuggestions([]);
         setModalOpen('activity');
     };
 
@@ -277,6 +286,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         setEditingActivityId(act.id);
         setSelectedDayId(act.dayId);
         setNewActivity(act);
+        setLocationQuery(act.locationName || '');
+        setLocationSuggestions([]);
         setModalOpen('activity');
     };
 
@@ -297,6 +308,55 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         } finally {
             setDeletingActivityId(null);
         }
+    };
+
+    // --- AUTOCOMPLETE HANDLERS ---
+    const fetchLocationSuggestions = async (query: string) => {
+        if (!query || query.length < 3) {
+            setLocationSuggestions([]);
+            setShowLocationDropdown(false);
+            return;
+        }
+
+        setIsSearchingLocation(true);
+        try {
+            const searchQuery = `${query}${data?.trip.destination ? `, ${data.trip.destination}` : ''}`;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`, {
+                headers: { 'User-Agent': 'TravelSystemApp/1.0' }
+            });
+            if (res.ok) {
+                const results = await res.json();
+                setLocationSuggestions(results);
+                setShowLocationDropdown(true);
+            }
+        } catch (err) {
+            console.error('Error fetching location', err);
+        } finally {
+            setIsSearchingLocation(false);
+        }
+    };
+
+    const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setLocationQuery(value);
+        setNewActivity(prev => ({ ...prev, locationName: value }));
+
+        if (locationTimeoutRef.current) clearTimeout(locationTimeoutRef.current);
+
+        locationTimeoutRef.current = setTimeout(() => {
+            fetchLocationSuggestions(value);
+        }, 500);
+    };
+
+    const handleLocationSelect = (loc: any) => {
+        setLocationQuery(loc.display_name);
+        setNewActivity(prev => ({
+            ...prev,
+            locationName: loc.display_name,
+            latitude: parseFloat(loc.lat),
+            longitude: parseFloat(loc.lon)
+        }));
+        setShowLocationDropdown(false);
     };
 
     const handleSaveActivity = async (e: React.FormEvent) => {
@@ -1102,14 +1162,43 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                 onChange={e => setNewActivity({ ...newActivity, timeStart: e.target.value })}
                             />
                         </div>
-                        <div>
+                        <div className="relative">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Local</label>
                             <input
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                                placeholder="Nome do local"
-                                value={newActivity.locationName || ''}
-                                onChange={e => setNewActivity({ ...newActivity, locationName: e.target.value })}
+                                placeholder="Nome do local ou endereço"
+                                value={locationQuery}
+                                onChange={handleLocationChange}
+                                onFocus={() => {
+                                    if (locationSuggestions.length > 0) setShowLocationDropdown(true);
+                                }}
                             />
+                            {/* Dropdown de Sugestões */}
+                            {showLocationDropdown && (
+                                <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                    {isSearchingLocation ? (
+                                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+                                            Buscando locais...
+                                        </div>
+                                    ) : locationSuggestions.length === 0 ? (
+                                        <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+                                            Nenhum local encontrado.
+                                        </div>
+                                    ) : (
+                                        locationSuggestions.map((loc: any, idx) => (
+                                            <div
+                                                key={loc.place_id || idx}
+                                                className="relative cursor-pointer select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-brand-50 hover:text-brand-900"
+                                                onClick={() => handleLocationSelect(loc)}
+                                            >
+                                                <span className="block truncate line-clamp-2 white-space-normal">
+                                                    {loc.display_name}
+                                                </span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="pt-4 flex justify-end gap-2">
