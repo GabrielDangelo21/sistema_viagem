@@ -691,35 +691,45 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
                         <div className="space-y-12">
                             {(() => {
-                                // Group days by stays
-                                const grouped = [];
-                                const sortedStays = [...(stays || [])].sort((a, b) => a.startDate.localeCompare(b.startDate));
+                                // Group days chronologically
+                                const grouped: any[] = [];
+                                const sortedDays = [...days].sort((a, b) => a.date.localeCompare(b.date));
+                                let currentUnassignedBlock: any = null;
 
-                                let unassignedDays = [...days];
-
-                                sortedStays.forEach(stay => {
-                                    const sStart = stay.startDate.substring(0, 10);
-                                    const sEnd = stay.endDate.substring(0, 10);
-
-                                    const stayDays = unassignedDays.filter(d => {
-                                        const dDate = d.date.substring(0, 10);
+                                sortedDays.forEach(day => {
+                                    const dDate = day.date.substring(0, 10);
+                                    const matchingStay = stays?.find(s => {
+                                        const sStart = s.startDate.substring(0, 10);
+                                        const sEnd = s.endDate.substring(0, 10);
                                         return dDate >= sStart && dDate <= sEnd;
                                     });
 
-                                    unassignedDays = unassignedDays.filter(d => {
-                                        const dDate = d.date.substring(0, 10);
-                                        return !(dDate >= sStart && dDate <= sEnd);
-                                    });
+                                    if (matchingStay) {
+                                        if (currentUnassignedBlock) {
+                                            grouped.push(currentUnassignedBlock);
+                                            currentUnassignedBlock = null;
+                                        }
 
-                                    grouped.push({ type: 'stay', stay, days: stayDays });
+                                        let stayBlock = grouped.find(g => g.type === 'stay' && g.stay.id === matchingStay.id);
+                                        if (!stayBlock) {
+                                            stayBlock = { type: 'stay', stay: matchingStay, days: [] };
+                                            grouped.push(stayBlock);
+                                        }
+                                        stayBlock.days.push(day);
+                                    } else {
+                                        if (!currentUnassignedBlock) {
+                                            currentUnassignedBlock = { type: 'unassigned', days: [] };
+                                        }
+                                        currentUnassignedBlock.days.push(day);
+                                    }
                                 });
 
-                                if (unassignedDays.length > 0) {
-                                    grouped.unshift({ type: 'unassigned', days: unassignedDays.sort((a, b) => a.date.localeCompare(b.date)) });
+                                if (currentUnassignedBlock) {
+                                    grouped.push(currentUnassignedBlock);
                                 }
 
                                 return grouped.map((group, gIdx) => (
-                                    <div key={group.type === 'stay' ? group.stay.id : 'unassigned'} className="space-y-6">
+                                    <div key={group.type === 'stay' ? group.stay.id : `unassigned-${gIdx}`} className="space-y-6">
                                         {group.type === 'stay' && (
                                             <div className="bg-brand-50 rounded-2xl p-4 md:p-6 border border-brand-100 flex justify-between items-center group">
                                                 <div>
@@ -733,8 +743,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                                     </p>
                                                 </div>
                                                 <div className="flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => handleEditStay(group.stay)} className="p-2 bg-white/60 hover:bg-white text-brand-700 rounded-full transition-colors shadow-sm"><Edit2 size={16} /></button>
-                                                    <button onClick={() => handleDeleteStayClick(group.stay.id)} className="p-2 bg-white/60 hover:bg-white text-red-600 rounded-full transition-colors shadow-sm"><Trash2 size={16} /></button>
+                                                    <button onClick={() => handleEditStay(group.stay)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-brand-700 rounded-full transition-colors shadow-sm" title="Editar Estadia"><Edit2 size={16} /></button>
+                                                    <button onClick={() => handleDeleteStayClick(group.stay.id)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-red-600 rounded-full transition-colors shadow-sm" title="Excluir Estadia"><Trash2 size={16} /></button>
                                                 </div>
                                             </div>
                                         )}
