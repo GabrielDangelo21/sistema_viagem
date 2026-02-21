@@ -189,7 +189,7 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
     setIsModalOpen(true);
     setFormError(null);
     setDateError(null);
-    setNewTrip({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', defaultCurrency: 'BRL' });
+    setNewTrip({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', type: 'lazer', budget: null, defaultCurrency: 'BRL' });
     if (fileInputRef.current) fileInputRef.current.value = '';
     // }
   };

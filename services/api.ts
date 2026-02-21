@@ -190,6 +190,21 @@ export const api = {
     return handleResponse(res);
   },
 
+  reorderActivities: async (dayId: string, activityIds: string[]): Promise<{ success: boolean }> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/activities/reorder/${dayId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ activityIds })
+    });
+    if (res.status === 204) return { success: true };
+    await handleResponse(res); // throws if not ok
+    return { success: true };
+  },
+
   // --- RESERVATIONS ---
   createReservation: async (payload: Omit<Reservation, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<Reservation> => {
     const headers = {

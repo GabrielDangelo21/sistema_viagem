@@ -1,0 +1,202 @@
+# 🧠 Brainstorm: Gap Analysis — Planejamento vs Implementação Atual
+
+### Context
+Análise detalhada comparando o planejamento inicial do sistema de viagem com o que está **efetivamente implementado** no código e no banco de dados.
+
+---
+
+## 📊 Resumo Executivo
+
+| Módulo | Status | Cobertura |
+|:---|:---|:---|
+| 🔐 Autenticação | 🟢 Implementado | ~95% |
+| 🌍 Gestão de Viagens | 🟢 Implementado | 100% |
+| 🗺️ Roteiro Diário | 🟡 Parcial | ~50% |
+| 🏨 Reservas | 🟢 Implementado | ~75% |
+| 📂 Documentos | 🔴 Não Implementado | ~5% |
+| ⏰ Lembretes | 🔴 Não Implementado | 0% |
+| 💰 Controle Financeiro | 🟢 Implementado | ~70% |
+| 👥 Viagens Compartilhadas | 🟡 Parcial | ~40% |
+| ✅ Checklist de Viagem | 🟢 Implementado | ~90% |
+| 🤖 Recursos de IA | 🔴 Não Implementado | ~5% |
+| 🔒 Segurança | 🟢 Implementado | ~80% |
+| 🎨 Interface/Design | 🟢 Implementado | ~65% |
+
+---
+
+## 🔐 Autenticação — 🟢 95%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Login com email/senha | ✅ | Via Supabase Auth |
+| Login com Google | ✅ | Configurado e funcional (OAuth Provider) |
+| Recuperação de senha | ✅ | [handleForgotPassword](file:///g:/Programacao/sistema_viagem/pages/Login.tsx#61-80) em [Login.tsx](file:///g:/Programacao/sistema_viagem/pages/Login.tsx) |
+| Magic Link | ✅ | [handleMagicLink](file:///g:/Programacao/sistema_viagem/pages/Login.tsx#44-60) implementado |
+| Perfil do usuário | ✅ | Nome, email, foto, fuso horário e idioma implementados |
+
+---
+
+## 🌍 Módulo 1 — Gestão de Viagens — 🟢 100%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Criar múltiplas viagens | ✅ | CRUD completo |
+| Nome da viagem | ✅ | |
+| Destino principal | ✅ | |
+| Destinos secundários | ✅ | Implementado |
+| Data início/fim | ✅ | Com validação |
+| Tipo (Lazer, Trabalho...) | ✅ | Implementado no schema e UI |
+| Orçamento previsto | ✅ | Implementado no schema e UI |
+| Moeda | ✅ | `defaultCurrency` |
+| Status dinâmico | ✅ | Substituiu TripStatus estático; cálculos 100% baseados em datas ISO |
+| Conformidade de API | ✅ | Padronização de mensagens de erro para PT-BR |
+| Imagem de capa (IA) | ✅ | `coverImageUrl` |
+
+---
+
+## 🗺️ Módulo 2 — Roteiro Diário — 🟡 50%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Agrupamento Hierárquico | ✅ | Dias listados corretamente debaixo de suas respectivas hospedagens (Stays) |
+| Criar dias automaticamente | ✅ | Baseado no intervalo de datas |
+| Adicionar atividades por dia | ✅ | CRUD de atividades |
+| Campos da atividade | ✅ | Título, horário, endereço, custo, notas |
+| Reordenar via drag-and-drop | ❌ | `orderIndex` existe mas sem DnD no frontend |
+| Visualização Lista | ✅ | |
+| Visualização Timeline | ❌ | |
+| Visualização Mapa Interativo | ❌ | |
+
+---
+
+## 🏨 Módulo 3 — Reservas — 🟢 75%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Tipos (hotel, voo, trem...) | ✅ | Enum completo com 8 tipos |
+| CRUD de reservas | ✅ | Criar, editar, deletar |
+| Código da reserva | ✅ | `confirmationCode` |
+| Valor e moeda | ✅ | |
+| Status (confirmada, pendente...) | ✅ | Enum implementado |
+| Upload de comprovante | ❌ | `attachmentFileId` existe mas uploads não funcionam |
+
+---
+
+## 📂 Módulo 4 — Documentos — 🔴 5%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Tabela [FileMeta](file:///g:/Programacao/sistema_viagem/types.ts#79-89) | ✅ | Schema existe no DB |
+| Upload de documentos | ❌ | [uploads.routes.ts](file:///g:/Programacao/sistema_viagem/backend/src/routes/uploads.routes.ts) existe mas com apenas 482 bytes |
+| Categorias | ❌ | |
+| Visualização/Download | ❌ | |
+| Armazenamento seguro | ❌ | Nenhum bucket de Storage criado |
+
+---
+
+## ⏰ Módulo 5 — Lembretes — 🔴 0%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Tabela `Reminders` | ❌ | Não existe no schema |
+| Tabela `Notifications` | ❌ | |
+| Lembretes manuais | ❌ | |
+| Lembretes automáticos | ❌ | |
+| Push/Email | ❌ | |
+
+---
+
+## 💰 Módulo 6 — Controle Financeiro — 🟢 70%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Registro de despesas | ✅ | CRUD completo |
+| Divisão de gastos | ✅ | [ExpenseShare](file:///g:/Programacao/sistema_viagem/types.ts#126-135) implementado |
+| Balanço entre participantes | ✅ | [getBalances](file:///g:/Programacao/sistema_viagem/services/api.ts#262-270) com sugestões de pagamento |
+| Categorias | 🟡 | `categoryId` no schema, mas sem tabela de categorias |
+| Orçamento planejado vs real | ❌ | Não há campo de orçamento na viagem |
+| Gráficos automáticos | ❌ | |
+
+---
+
+## 👥 Módulo 7 — Viagens Compartilhadas — 🟡 40%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Adicionar participantes | ✅ | Por nome e email |
+| Listar participantes | ✅ | [ParticipantsList.tsx](file:///g:/Programacao/sistema_viagem/components/ParticipantsList.tsx) |
+| Convidar por email (envio) | ❌ | Sem integração de email |
+| Permissões (ver/editar/admin) | ❌ | Roles existem nos types mas sem enforcement |
+| Histórico de alterações | ❌ | |
+
+---
+
+## ✅ Módulo 8 — Checklist de Viagem — 🟢 90%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Aba nativa em TripDetails | ✅ | Integração profunda com carregamento lazy-load |
+| Organização de tarefas | ✅ | Ordenação alfabética resolvida nativamente na API |
+| Isolamento em viagens | ✅ | Removido dropdown; foco limpo na tela de viagem respectiva |
+| CRUD e Toggle de checks | ✅ | Implementado e funcional |
+
+---
+
+## 🤖 Recursos de IA — 🔴 5%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Gerar roteiro automaticamente | ❌ | |
+| Sugerir restaurantes/pontos | ❌ | |
+| Otimização de roteiro | ❌ | |
+| Estimativa de custos | ❌ | |
+| Imagem de capa via IA | ✅ | Com mitigação de cache de navegador (seed) e bypass de referrer policy |
+
+---
+
+## 🎨 Interface & Design
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Home Padrão (Minhas Viagens) | ✅ | Fluxo principal ajustado para ser a prioridade de listagem nativa |
+| Dashboard com próxima viagem | ✅ | Focado de forma minimalista apenas na viagem imediata |
+| Integração Modular (Tabs) | ✅ | Módulos de Checklist, Participantes e Finanças unificados na página da viagem |
+| Design minimalista/moderno | ✅ | Tailwind CSS + Lucide Icons |
+| Responsivo (Mobile First) | 🟡 | Parcialmente, precisa de testes |
+| Paleta Azul + Branco | ✅ | `brand-*` colors configuradas |
+
+---
+
+## 🔒 Segurança — 🟢 80%
+
+| Feature | Status | Notas |
+|:---|:---|:---|
+| Controle de acesso (auth) | ✅ | JWT via Supabase Auth |
+| RLS no banco de dados | ✅ | **Recém implementado** em todas as tabelas |
+| Proteção de documentos | ❌ | Módulo de documentos não existe |
+| Backup automático | ❌ | Não configurado |
+| Criptografia de dados | ✅ | Padrão Supabase (TLS + bcrypt) |
+
+---
+
+## 💡 Recommendation: Próximos Passos Prioritários
+
+### 🥇 Prioridade Alta (Core Experience)
+1. **Módulo de Documentos** — Criar Storage bucket, implementar upload/download
+2. **Drag-and-Drop no Roteiro** — Reordenar atividades visualmente
+
+### 🥈 Prioridade Média (Diferenciação)
+5. **Recursos de IA** — Geração automática de roteiros (maior diferencial competitivo)
+6. **Lembretes** — Criar schema e notificações por email
+7. **Permissões granulares** — Enforcement de roles para participantes
+8. **Categorias de despesas** — Tabela + UI para categorização
+
+### 🥉 Prioridade Baixa (Escalabilidade Futura)
+9. **Gráficos financeiros** — Chart.js ou Recharts
+10. **Mapa interativo** — Google Maps/Mapbox no roteiro
+11. **Sync com Google Calendar**
+12. **Modo offline / App nativo**
+
+---
+
+## Qual direção você gostaria de explorar primeiro?

@@ -115,6 +115,8 @@ model Activity {
   cost         Float?
   currency     String?
   notes        String?
+  latitude     Float?
+  longitude    Float?
   orderIndex   Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

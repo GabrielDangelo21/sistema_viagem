@@ -63,6 +63,8 @@ export interface Activity {
   cost?: number;
   currency?: string;
   notes?: string;
+  latitude?: number;
+  longitude?: number;
   orderIndex: number;
   createdAt: string; // ISO_DATETIME
   updatedAt: string; // ISO_DATETIME

@@ -19,6 +19,7 @@ const TRIP_TYPES = [
 import { ParticipantsList } from '../components/ParticipantsList';
 import { FinanceModule } from '../components/FinanceModule';
 import { StayModal } from '../components/StayModal';
+import { ItineraryTab } from '../components/ItineraryTab';
 
 interface TripDetailsProps {
     tripId?: string;
@@ -680,139 +681,16 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
                 {/* ITINERARY TAB */}
                 {activeTab === 'itinerary' && (
-                    <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                            <h2 className="text-xl font-bold text-gray-800">Dia a Dia</h2>
-                            <div className="flex gap-2">
-                                <Button size="sm" variant="secondary" onClick={handleNewStay}><MapPin size={16} className="mr-1" /> Nova Estadia</Button>
-                                <Button size="sm" onClick={() => setModalOpen('activity')}><Plus size={16} className="mr-1" /> Atividade</Button>
-                            </div>
-                        </div>
-
-                        <div className="space-y-12">
-                            {(() => {
-                                // Group days chronologically
-                                const grouped: any[] = [];
-                                const sortedDays = [...days].sort((a, b) => a.date.localeCompare(b.date));
-                                let currentUnassignedBlock: any = null;
-
-                                sortedDays.forEach(day => {
-                                    const dDate = day.date.substring(0, 10);
-                                    const matchingStay = stays?.find(s => {
-                                        const sStart = s.startDate.substring(0, 10);
-                                        const sEnd = s.endDate.substring(0, 10);
-                                        return dDate >= sStart && dDate <= sEnd;
-                                    });
-
-                                    if (matchingStay) {
-                                        if (currentUnassignedBlock) {
-                                            grouped.push(currentUnassignedBlock);
-                                            currentUnassignedBlock = null;
-                                        }
-
-                                        let stayBlock = grouped.find(g => g.type === 'stay' && g.stay.id === matchingStay.id);
-                                        if (!stayBlock) {
-                                            stayBlock = { type: 'stay', stay: matchingStay, days: [] };
-                                            grouped.push(stayBlock);
-                                        }
-                                        stayBlock.days.push(day);
-                                    } else {
-                                        if (!currentUnassignedBlock) {
-                                            currentUnassignedBlock = { type: 'unassigned', days: [] };
-                                        }
-                                        currentUnassignedBlock.days.push(day);
-                                    }
-                                });
-
-                                if (currentUnassignedBlock) {
-                                    grouped.push(currentUnassignedBlock);
-                                }
-
-                                return grouped.map((group, gIdx) => (
-                                    <div key={group.type === 'stay' ? group.stay.id : `unassigned-${gIdx}`} className="space-y-6">
-                                        {group.type === 'stay' && (
-                                            <div className="bg-brand-50 rounded-2xl p-4 md:p-6 border border-brand-100 flex justify-between items-center group">
-                                                <div>
-                                                    <h3 className="text-lg md:text-xl font-bold text-brand-900 flex items-center gap-2">
-                                                        <MapPin size={20} className="text-brand-600" />
-                                                        {group.stay.name}
-                                                    </h3>
-                                                    <p className="text-brand-700/80 text-sm mt-1 font-medium">
-                                                        {formatDate(group.stay.startDate, 'select')} a {formatDate(group.stay.endDate, 'select')}
-                                                        ({group.days.length} diárias planejadas)
-                                                    </p>
-                                                </div>
-                                                <div className="flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => handleEditStay(group.stay)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-brand-700 rounded-full transition-colors shadow-sm" title="Editar Estadia"><Edit2 size={16} /></button>
-                                                    <button onClick={() => handleDeleteStayClick(group.stay.id)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-red-600 rounded-full transition-colors shadow-sm" title="Excluir Estadia"><Trash2 size={16} /></button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="relative border-l-2 border-gray-200 ml-3 md:ml-6 space-y-10 pb-4">
-                                            {group.days.map((day) => {
-                                                const dayActs = activities.filter(a => a.dayId === day.id).sort((a, b) => (a.timeStart || '24:00').localeCompare((b.timeStart || '24:00')));
-                                                return (
-                                                    <div key={day.id} className="relative pl-6 md:pl-10">
-                                                        {/* Day Marker */}
-                                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-500 border-4 border-white shadow-sm" />
-
-                                                        <div className="mb-4">
-                                                            <h3 className="text-lg font-bold text-gray-900">{day.title}</h3>
-                                                            <p className="text-sm text-gray-500 capitalize">
-                                                                {formatDate(day.date, 'day-header')}
-                                                            </p>
-                                                        </div>
-
-                                                        {dayActs.length > 0 ? (
-                                                            <div className="space-y-3">
-                                                                {dayActs.map((act) => (
-                                                                    <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-4 hover:border-brand-200 transition-colors group">
-                                                                        <div className="flex flex-col items-center justify-center w-12 text-gray-400 text-xs font-medium border-r border-gray-100 pr-4">
-                                                                            {act.timeStart ? (
-                                                                                <>
-                                                                                    <span>{act.timeStart}</span>
-                                                                                    {act.timeEnd && <span className="text-[10px] opacity-60">to {act.timeEnd}</span>}
-                                                                                </>
-                                                                            ) : (
-                                                                                <Clock size={16} />
-                                                                            )}
-                                                                        </div>
-                                                                        <div className="flex-1">
-                                                                            <h4 className="font-semibold text-gray-800">{act.title}</h4>
-                                                                            {act.locationName && (
-                                                                                <p className="text-sm text-gray-500 flex items-center mt-1">
-                                                                                    <MapPin size={12} className="mr-1" /> {act.locationName}
-                                                                                </p>
-                                                                            )}
-                                                                            {act.cost && (
-                                                                                <p className="text-xs text-green-600 font-medium mt-1 flex items-center">
-                                                                                    <DollarSign size={10} /> {act.currency || 'R$'} {act.cost}
-                                                                                </p>
-                                                                            )}
-                                                                        </div>
-                                                                        {/* Reorder Placeholder */}
-                                                                        <div className="hidden group-hover:flex flex-col gap-1 text-gray-300">
-                                                                            <MoveUp size={14} className="hover:text-gray-500 cursor-pointer" />
-                                                                            <MoveDown size={14} className="hover:text-gray-500 cursor-pointer" />
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        ) : (
-                                                            <div className="text-sm text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200">
-                                                                Nenhuma atividade planejada.
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                ));
-                            })()}
-                        </div>
-                    </div>
+                    <ItineraryTab
+                        days={days}
+                        activities={activities}
+                        stays={stays}
+                        handleNewStay={handleNewStay}
+                        setModalOpen={setModalOpen}
+                        handleEditStay={handleEditStay}
+                        handleDeleteStayClick={handleDeleteStayClick}
+                        refetch={() => fetchData(trip.id)}
+                    />
                 )}
 
                 {/* RESERVATIONS TAB */}
