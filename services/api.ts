@@ -26,6 +26,7 @@ async function handleResponse(res: Response) {
     const message = errorData.message || 'Erro na requisição';
     throw new Error(message);
   }
+  if (res.status === 204) return null;
   return res.json();
 }
 
