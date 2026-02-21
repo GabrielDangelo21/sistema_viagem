@@ -1212,7 +1212,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             onChange={(e) => setSelectedDayId(e.target.value)}
                         >
                             {days.map(d => (
-                                <option key={d.id} value={d.id}>{formatDate(d.date, 'select')} - {d.title}</option>
+                                <option key={d.id} value={d.id}>{formatDate(d.date, 'select')}{d.title ? ` - ${d.title}` : ''}</option>
                             ))}
                         </select>
                     </div>
