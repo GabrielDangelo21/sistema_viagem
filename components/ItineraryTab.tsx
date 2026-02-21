@@ -104,7 +104,7 @@ const DayActivityList = ({ dayId, acts, onEdit, onDelete }: any) => {
     );
 };
 
-const TimelineView = ({ days, activities }: any) => {
+const TimelineView = ({ days, activities, onEdit, onDelete }: any) => {
     // Flatten and sort absolutely everything by date and time
     const timelineItems = days.flatMap((day: any) => {
         const dayActs = activities.filter((a: any) => a.dayId === day.id);
@@ -177,6 +177,15 @@ const TimelineView = ({ days, activities }: any) => {
                                         </span>
                                     </div>
                                 )}
+
+                                <div className="flex flex-row md:flex-col gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity justify-center mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 md:border-l border-gray-100 md:pl-2 shrink-0">
+                                    <button onClick={() => onEdit(act)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Editar">
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button onClick={() => onDelete(act.id)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </React.Fragment>
@@ -199,7 +208,7 @@ const MapBounds = ({ activities }: { activities: any[] }) => {
     return null;
 };
 
-const MapView = ({ activities }: any) => {
+const MapView = ({ activities, days }: any) => {
     const mappableActs = activities.filter((a: any) => a.latitude && a.longitude);
 
     if (mappableActs.length === 0) {
@@ -223,17 +232,21 @@ const MapView = ({ activities }: any) => {
                 />
                 <MapBounds activities={mappableActs} />
 
-                {mappableActs.map((act: any) => (
-                    <Marker key={act.id} position={[act.latitude, act.longitude]}>
-                        <Popup className="rounded-xl font-sans">
-                            <div className="text-center">
-                                <h4 className="font-bold text-gray-900 border-b pb-1 mb-1">{act.title}</h4>
-                                <p className="text-sm text-gray-600 mb-1">{act.locationName || act.address}</p>
-                                {act.timeStart && <p className="text-xs font-bold text-brand-600">{act.timeStart}</p>}
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
+                {mappableActs.map((act: any) => {
+                    const actDay = days.find((d: any) => d.id === act.dayId);
+                    return (
+                        <Marker key={act.id} position={[act.latitude, act.longitude]}>
+                            <Popup className="rounded-xl font-sans">
+                                <div className="text-center">
+                                    <h4 className="font-bold text-gray-900 border-b pb-1 mb-1">{act.title}</h4>
+                                    {actDay && <p className="text-xs font-semibold text-brand-600 mb-1 capitalize">{formatDate(actDay.date, 'day-header')}</p>}
+                                    <p className="text-sm text-gray-600 mb-1">{act.locationName || act.address}</p>
+                                    {act.timeStart && <p className="text-xs font-bold text-gray-800">{act.timeStart} {act.timeEnd ? `até ${act.timeEnd}` : ''}</p>}
+                                </div>
+                            </Popup>
+                        </Marker>
+                    );
+                })}
             </MapContainer>
         </div>
     );
@@ -473,14 +486,19 @@ export function ItineraryTab({ days, activities, stays, handleNewStay, handleNew
             {/* Timeline View */}
             {view === 'timeline' && (
                 <div className="animate-in fade-in duration-500">
-                    <TimelineView days={days} activities={activities} />
+                    <TimelineView
+                        days={days}
+                        activities={activities}
+                        onEdit={handleEditActivity}
+                        onDelete={handleDeleteActivityClick}
+                    />
                 </div>
             )}
 
             {/* Map View */}
             {view === 'map' && (
                 <div className="animate-in fade-in duration-500">
-                    <MapView activities={activities} />
+                    <MapView activities={activities} days={days} />
                 </div>
             )}
         </div>
