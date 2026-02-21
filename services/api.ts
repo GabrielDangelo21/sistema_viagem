@@ -190,6 +190,29 @@ export const api = {
     return handleResponse(res);
   },
 
+  updateActivity: async (activityId: string, payload: Partial<Activity>): Promise<Activity> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/activities/${activityId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(res);
+  },
+
+  deleteActivity: async (activityId: string): Promise<{ success: boolean }> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/activities/${activityId}`, {
+      method: 'DELETE',
+      headers
+    });
+    await handleResponse(res);
+    return { success: true };
+  },
+
   reorderActivities: async (dayId: string, activityIds: string[]): Promise<{ success: boolean }> => {
     const headers = {
       ...(await getAuthHeaders()),

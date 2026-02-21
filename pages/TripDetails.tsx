@@ -38,7 +38,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const [overviewLoading, setOverviewLoading] = useState(false);
 
     // Modals
-    const [modalOpen, setModalOpen] = useState<'activity' | 'reservation' | 'delete-res' | 'edit-trip' | 'stay' | 'delete-stay' | null>(null);
+    const [modalOpen, setModalOpen] = useState<'activity' | 'reservation' | 'delete-res' | 'edit-trip' | 'stay' | 'delete-stay' | 'delete-activity' | null>(null);
 
     // State for Edit Trip Form
     const [editTripForm, setEditTripForm] = useState({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', type: 'lazer', budget: null as number | null, defaultCurrency: 'BRL' });
@@ -68,6 +68,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     // State for Activity Form
     const [newActivity, setNewActivity] = useState<Partial<Activity>>({ title: '' });
     const [selectedDayId, setSelectedDayId] = useState<string>('');
+    const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+    const [deletingActivityId, setDeletingActivityId] = useState<string | null>(null);
 
     // File Input Ref for Edit Trip
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -265,21 +267,64 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     };
 
     // --- ACTIVITY HANDLERS ---
-    const handleAddActivity = async (e: React.FormEvent) => {
+    const handleNewActivity = () => {
+        setEditingActivityId(null);
+        setNewActivity({ title: '' });
+        setModalOpen('activity');
+    };
+
+    const handleEditActivityClick = (act: Activity) => {
+        setEditingActivityId(act.id);
+        setSelectedDayId(act.dayId);
+        setNewActivity(act);
+        setModalOpen('activity');
+    };
+
+    const handleDeleteActivityClick = (id: string) => {
+        setDeletingActivityId(id);
+        setModalOpen('delete-activity');
+    };
+
+    const confirmDeleteActivity = async () => {
+        if (!deletingActivityId || !data) return;
+        try {
+            await api.deleteActivity(deletingActivityId);
+            setModalOpen(null);
+            fetchData(data.trip.id);
+            toast({ message: 'Atividade removida.', type: 'success' });
+        } catch (err: any) {
+            toast({ message: handleApiError(err).message, type: 'error' });
+        } finally {
+            setDeletingActivityId(null);
+        }
+    };
+
+    const handleSaveActivity = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!data || !selectedDayId) return;
 
         try {
-            await api.createActivity({
-                dayId: selectedDayId,
-                title: newActivity.title || 'Nova Atividade',
-                timeStart: newActivity.timeStart,
-                locationName: newActivity.locationName,
-            });
+            if (editingActivityId) {
+                await api.updateActivity(editingActivityId, {
+                    dayId: selectedDayId,
+                    title: newActivity.title || 'Nova Atividade',
+                    timeStart: newActivity.timeStart,
+                    locationName: newActivity.locationName,
+                });
+                toast({ message: 'Atividade atualizada!', type: 'success' });
+            } else {
+                await api.createActivity({
+                    dayId: selectedDayId,
+                    title: newActivity.title || 'Nova Atividade',
+                    timeStart: newActivity.timeStart,
+                    locationName: newActivity.locationName,
+                });
+                toast({ message: 'Atividade adicionada!', type: 'success' });
+            }
             setModalOpen(null);
+            setEditingActivityId(null);
             setNewActivity({ title: '' });
             fetchData(data.trip.id);
-            toast({ message: 'Atividade adicionada!', type: 'success' });
         } catch (err) {
             const error = handleApiError(err);
             toast({ message: error.message, type: 'error' });
@@ -686,7 +731,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         activities={activities}
                         stays={stays}
                         handleNewStay={handleNewStay}
-                        setModalOpen={setModalOpen}
+                        handleNewActivity={handleNewActivity}
+                        handleEditActivity={handleEditActivityClick}
+                        handleDeleteActivityClick={handleDeleteActivityClick}
                         handleEditStay={handleEditStay}
                         handleDeleteStayClick={handleDeleteStayClick}
                         refetch={() => fetchData(trip.id)}
@@ -1021,8 +1068,8 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             </Modal >
 
             {/* Activity Modal */}
-            < Modal isOpen={modalOpen === 'activity'} onClose={() => setModalOpen(null)} title="Nova Atividade" >
-                <form onSubmit={handleAddActivity} className="space-y-4">
+            < Modal isOpen={modalOpen === 'activity'} onClose={() => setModalOpen(null)} title={editingActivityId ? "Editar Atividade" : "Nova Atividade"} >
+                <form onSubmit={handleSaveActivity} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Dia</label>
                         <select
@@ -1191,6 +1238,17 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     <div className="flex justify-end gap-2">
                         <Button variant="ghost" onClick={() => setModalOpen(null)}>Cancelar</Button>
                         <Button variant="danger" onClick={confirmDeleteReservation}>Excluir</Button>
+                    </div>
+                </div>
+            </Modal >
+
+            {/* Delete Activity Confirmation */}
+            < Modal isOpen={modalOpen === 'delete-activity'} onClose={() => setModalOpen(null)} title="Excluir Atividade?" >
+                <div className="py-2">
+                    <p className="text-gray-600 mb-6">Tem certeza que deseja remover esta atividade? Esta ação não pode ser desfeita.</p>
+                    <div className="flex justify-end gap-2">
+                        <Button variant="ghost" onClick={() => setModalOpen(null)}>Cancelar</Button>
+                        <Button variant="danger" onClick={confirmDeleteActivity}>Excluir</Button>
                     </div>
                 </div>
             </Modal >

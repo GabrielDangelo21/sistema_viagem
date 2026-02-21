@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Plus, Clock, DollarSign, MoveUp, MoveDown, Trash2, Edit2, Map as MapIcon, List as ListIcon, Calendar as CalendarIcon } from 'lucide-react';
 import { Button, Badge } from './UI';
 import { CSS } from '@dnd-kit/utilities';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -31,7 +31,7 @@ const formatDate = (dateStr: string, formatType: string) => {
     }
 };
 
-const SortableActivity = ({ act }: { act: any }) => {
+const SortableActivity = ({ act, onEdit, onDelete }: { act: any, onEdit: any, onDelete: any }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: act.id });
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -43,7 +43,7 @@ const SortableActivity = ({ act }: { act: any }) => {
     return (
         <div ref={setNodeRef} style={style} className={`bg-white p-4 rounded-xl border ${isDragging ? 'border-brand-500 shadow-lg relative' : 'border-gray-100 shadow-sm'} flex gap-4 hover:border-brand-200 transition-colors group`}>
             {/* Drag Handle */}
-            <div {...attributes} {...listeners} className="flex flex-col items-center justify-center w-8 cursor-grab active:cursor-grabbing text-gray-300 hover:text-brand-500 hover:bg-brand-50 rounded-lg shrink-0">
+            <div {...attributes} {...listeners} className="flex flex-col items-center justify-center w-8 cursor-grab active:cursor-grabbing text-gray-300 hover:text-brand-500 hover:bg-brand-50 rounded-lg shrink-0 touch-none">
                 <MoveUp size={14} className="-mb-1" />
                 <MoveDown size={14} />
             </div>
@@ -71,58 +71,36 @@ const SortableActivity = ({ act }: { act: any }) => {
                     </p>
                 )}
             </div>
+
+            <div className="flex gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity items-center shrink-0 pr-2">
+                <button onClick={() => onEdit(act)} className="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Editar">
+                    <Edit2 size={16} />
+                </button>
+                <button onClick={() => onDelete(act.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
+                    <Trash2 size={16} />
+                </button>
+            </div>
         </div>
     );
 };
 
-const DayActivityList = ({ day, initialActivities, refetch }: any) => {
-    const [acts, setActs] = useState(initialActivities);
-
-    useEffect(() => {
-        setActs(initialActivities);
-    }, [initialActivities]);
-
-    const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-    );
-
-    const handleDragEnd = async (event: any) => {
-        const { active, over } = event;
-        if (over && active.id !== over.id) {
-            const oldIndex = acts.findIndex((a: any) => a.id === active.id);
-            const newIndex = acts.findIndex((a: any) => a.id === over.id);
-            const newOrder = arrayMove(acts, oldIndex, newIndex);
-            setActs(newOrder);
-
-            try {
-                await api.reorderActivities(day.id, newOrder.map((a: any) => a.id));
-                refetch();
-            } catch (err) {
-                console.error("Failed to reorder", err);
-                setActs(initialActivities); // revert on error
-            }
-        }
-    };
-
-    if (acts.length === 0) {
-        return (
-            <div className="text-sm text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200">
-                Nenhuma atividade planejada.
-            </div>
-        );
-    }
+const DayActivityList = ({ dayId, acts, onEdit, onDelete }: any) => {
+    const { setNodeRef } = useDroppable({ id: dayId });
 
     return (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <div ref={setNodeRef} className="space-y-3 min-h-[60px] rounded-xl transition-colors">
             <SortableContext items={acts.map((a: any) => a.id)} strategy={verticalListSortingStrategy}>
-                <div className="space-y-3">
-                    {acts.map((act: any) => (
-                        <SortableActivity key={act.id} act={act} />
-                    ))}
-                </div>
+                {acts.length > 0 ? (
+                    acts.map((act: any) => (
+                        <SortableActivity key={act.id} act={act} onEdit={onEdit} onDelete={onDelete} />
+                    ))
+                ) : (
+                    <div className="text-sm text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200 pointer-events-none">
+                        Arraste uma atividade para cá ou adicione uma nova.
+                    </div>
+                )}
             </SortableContext>
-        </DndContext>
+        </div>
     );
 };
 
@@ -261,8 +239,112 @@ const MapView = ({ activities }: any) => {
     );
 };
 
-export function ItineraryTab({ days, activities, stays, handleNewStay, setModalOpen, handleEditStay, handleDeleteStayClick, refetch }: any) {
-    const [view, setView] = useState<'list' | 'timeline' | 'map'>('list');
+export function ItineraryTab({ days, activities, stays, handleNewStay, handleNewActivity, handleEditActivity, handleDeleteActivityClick, handleEditStay, handleDeleteStayClick, refetch }: any) {
+    const [view, setView] = useState<'list' | 'timeline' | 'map'>('timeline');
+
+    const [localActs, setLocalActs] = useState(activities);
+    useEffect(() => { setLocalActs(activities); }, [activities]);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    );
+
+    const findDayId = (id: string, currentActs: any[]) => {
+        if (days.some((d: any) => d.id === id)) return id; // It's a day bucket
+        const act = currentActs.find((a: any) => a.id === id);
+        return act?.dayId;
+    };
+
+    const handleDragEnd = async (event: any) => {
+        const { active, over } = event;
+        if (!over) return;
+
+        const activeId = active.id;
+        const overId = over.id;
+
+        if (activeId === overId) return;
+
+        const activeDayId = findDayId(activeId, localActs);
+        const overDayId = findDayId(overId, localActs);
+
+        if (!activeDayId || !overDayId) return;
+
+        const activeAct = localActs.find((a: any) => a.id === activeId);
+        if (!activeAct) return;
+
+        let newActs = [...localActs];
+
+        if (activeDayId === overDayId) {
+            const dayActs = newActs.filter(a => a.dayId === activeDayId).sort((a, b) => a.orderIndex - b.orderIndex);
+            const oldIndex = dayActs.findIndex(a => a.id === activeId);
+            const newIndex = dayActs.findIndex(a => a.id === overId);
+
+            const reorderedDayActs = arrayMove(dayActs, oldIndex, newIndex);
+
+            newActs = newActs.map(a => {
+                if (a.dayId === activeDayId) {
+                    const idx = reorderedDayActs.findIndex((ra: any) => ra.id === a.id);
+                    return { ...a, orderIndex: idx };
+                }
+                return a;
+            });
+
+            setLocalActs(newActs);
+
+            try {
+                await api.reorderActivities(activeDayId, reorderedDayActs.map(a => a.id));
+                refetch();
+            } catch (err) {
+                console.error(err);
+                setLocalActs(activities);
+            }
+        } else {
+            const newDayId = overDayId;
+
+            newActs = newActs.map(a => {
+                if (a.id === activeId) {
+                    return { ...a, dayId: newDayId };
+                }
+                return a;
+            });
+
+            const sourceDayActs = newActs.filter(a => a.dayId === activeDayId).sort((a, b) => a.orderIndex - b.orderIndex);
+            const targetDayActs = newActs.filter(a => a.dayId === newDayId).sort((a, b) => a.orderIndex - b.orderIndex);
+
+            let finalTargetActs = [...targetDayActs];
+
+            if (overId !== newDayId) {
+                const overIndex = targetDayActs.findIndex((a: any) => a.id === overId);
+                const activeIndexInTarget = finalTargetActs.findIndex((a: any) => a.id === activeId);
+                if (activeIndexInTarget >= 0) {
+                    finalTargetActs = arrayMove(finalTargetActs, activeIndexInTarget, overIndex);
+                }
+            }
+
+            newActs = newActs.map(a => {
+                if (a.dayId === activeDayId) {
+                    return { ...a, orderIndex: sourceDayActs.findIndex(sa => sa.id === a.id) };
+                }
+                if (a.dayId === newDayId) {
+                    return { ...a, orderIndex: finalTargetActs.findIndex(ta => ta.id === a.id) };
+                }
+                return a;
+            });
+
+            setLocalActs(newActs);
+
+            try {
+                await api.updateActivity(activeId, { dayId: newDayId });
+                await api.reorderActivities(newDayId, finalTargetActs.map(a => a.id));
+                await api.reorderActivities(activeDayId, sourceDayActs.map(a => a.id));
+                refetch();
+            } catch (err) {
+                console.error(err);
+                setLocalActs(activities);
+            }
+        }
+    };
 
     // Group days chronologically
     const grouped: any[] = [];
@@ -322,63 +404,70 @@ export function ItineraryTab({ days, activities, stays, handleNewStay, setModalO
                 </div>
                 <div className="flex gap-2">
                     <Button size="sm" variant="secondary" onClick={handleNewStay}><MapPin size={16} className="mr-1" /> Nova Estadia</Button>
-                    <Button size="sm" onClick={() => setModalOpen('activity')}><Plus size={16} className="mr-1" /> Atividade</Button>
+                    <Button size="sm" onClick={handleNewActivity}><Plus size={16} className="mr-1" /> Atividade</Button>
                 </div>
             </div>
 
             {/* List View */}
             {view === 'list' && (
-                <div className="space-y-12">
-                    {grouped.map((group, gIdx) => (
-                        <div key={group.type === 'stay' ? group.stay.id : `unassigned-${gIdx}`} className="space-y-6">
-                            {group.type === 'stay' && (
-                                <div className="bg-brand-50 rounded-2xl p-4 md:p-6 border border-brand-100 flex justify-between items-center group">
-                                    <div>
-                                        <h3 className="text-lg md:text-xl font-bold text-brand-900 flex items-center gap-2">
-                                            <MapPin size={20} className="text-brand-600" />
-                                            {group.stay.name}
-                                        </h3>
-                                        <p className="text-brand-700/80 text-sm mt-1 font-medium">
-                                            {formatDate(group.stay.startDate, 'select')} a {formatDate(group.stay.endDate, 'select')}
-                                            ({group.days.length} diárias planejadas)
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => handleEditStay(group.stay)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-brand-700 rounded-full transition-colors shadow-sm" title="Editar Estadia"><Edit2 size={16} /></button>
-                                        <button onClick={() => handleDeleteStayClick(group.stay.id)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-red-600 rounded-full transition-colors shadow-sm" title="Excluir Estadia"><Trash2 size={16} /></button>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="relative border-l-2 border-gray-200 ml-3 md:ml-6 space-y-10 pb-4">
-                                {group.days.map((day: any) => {
-                                    const dayActs = activities
-                                        .filter((a: any) => a.dayId === day.id)
-                                        .sort((a: any, b: any) => {
-                                            if (a.orderIndex !== b.orderIndex) return a.orderIndex - b.orderIndex;
-                                            return (a.timeStart || '24:00').localeCompare((b.timeStart || '24:00'));
-                                        });
-
-                                    return (
-                                        <div key={day.id} className="relative pl-6 md:pl-10">
-                                            {/* Day Marker */}
-                                            <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-500 border-4 border-white shadow-sm" />
-
-                                            <div className="mb-4">
-                                                <h3 className="text-lg font-bold text-gray-900">{day.title}</h3>
-                                                <p className="text-sm text-gray-500 capitalize">
-                                                    {formatDate(day.date, 'day-header')}
-                                                </p>
-                                            </div>
-
-                                            <DayActivityList day={day} initialActivities={dayActs} refetch={refetch} />
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <div className="space-y-12">
+                        {grouped.map((group, gIdx) => (
+                            <div key={group.type === 'stay' ? group.stay.id : `unassigned-${gIdx}`} className="space-y-6">
+                                {group.type === 'stay' && (
+                                    <div className="bg-brand-50 rounded-2xl p-4 md:p-6 border border-brand-100 flex justify-between items-center group">
+                                        <div>
+                                            <h3 className="text-lg md:text-xl font-bold text-brand-900 flex items-center gap-2">
+                                                <MapPin size={20} className="text-brand-600" />
+                                                {group.stay.name}
+                                            </h3>
+                                            <p className="text-brand-700/80 text-sm mt-1 font-medium">
+                                                {formatDate(group.stay.startDate, 'select')} a {formatDate(group.stay.endDate, 'select')}
+                                                ({group.days.length} diárias planejadas)
+                                            </p>
                                         </div>
-                                    );
-                                })}
+                                        <div className="flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => handleEditStay(group.stay)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-brand-700 rounded-full transition-colors shadow-sm" title="Editar Estadia"><Edit2 size={16} /></button>
+                                            <button onClick={() => handleDeleteStayClick(group.stay.id)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-red-600 rounded-full transition-colors shadow-sm" title="Excluir Estadia"><Trash2 size={16} /></button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="relative border-l-2 border-gray-200 ml-3 md:ml-6 space-y-10 pb-4">
+                                    {group.days.map((day: any) => {
+                                        const dayActs = localActs
+                                            .filter((a: any) => a.dayId === day.id)
+                                            .sort((a: any, b: any) => {
+                                                if (a.orderIndex !== b.orderIndex) return a.orderIndex - b.orderIndex;
+                                                return (a.timeStart || '24:00').localeCompare((b.timeStart || '24:00'));
+                                            });
+
+                                        return (
+                                            <div key={day.id} className="relative pl-6 md:pl-10">
+                                                {/* Day Marker */}
+                                                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-500 border-4 border-white shadow-sm" />
+
+                                                <div className="mb-4">
+                                                    <h3 className="text-lg font-bold text-gray-900">{day.title}</h3>
+                                                    <p className="text-sm text-gray-500 capitalize">
+                                                        {formatDate(day.date, 'day-header')}
+                                                    </p>
+                                                </div>
+
+                                                <DayActivityList
+                                                    dayId={day.id}
+                                                    acts={dayActs}
+                                                    onEdit={handleEditActivity}
+                                                    onDelete={handleDeleteActivityClick}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                </DndContext>
             )}
 
             {/* Timeline View */}
