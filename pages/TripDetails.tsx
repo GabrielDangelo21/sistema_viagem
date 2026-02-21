@@ -76,6 +76,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
     const [isSearchingLocation, setIsSearchingLocation] = useState(false);
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+    const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
     const locationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // File Input Ref for Edit Trip
@@ -315,16 +316,32 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const placesService = useRef<any>(null);
 
     useEffect(() => {
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
-        if (!apiKey || document.querySelector('script[src*="googleapis.com/maps/api/js"]')) return;
+        if ((window as any).google) {
+            setIsGoogleLoaded(true);
+            return;
+        }
 
-        // Limpa o erro do "google is not defined" colocando um callback global
-        (window as any).initMap = () => { };
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+        if (!apiKey) {
+            console.error('VITE_GOOGLE_MAPS_KEY não está definida no ambiente.');
+            return;
+        }
+
+        const existingScript = document.querySelector('script[src*="googleapis.com/maps/api/js"]');
+        if (existingScript) {
+            existingScript.addEventListener('load', () => setIsGoogleLoaded(true));
+            return;
+        }
+
+        (window as any).initMap = () => {
+            setIsGoogleLoaded(true);
+        };
 
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=pt-BR&callback=initMap`;
         script.async = true;
         script.defer = true;
+        script.onerror = () => console.error('Falha ao carregar script do Google Maps');
         document.head.appendChild(script);
     }, []);
 
@@ -1233,9 +1250,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             {/* Dropdown de Sugestões Simplificado e Robusto */}
                             {showLocationDropdown && (
                                 <div className="mt-2 w-full overflow-hidden rounded-md border-2 border-brand-500 bg-white shadow-md z-50">
-                                    {!(window as any).google ? (
+                                    {!isGoogleLoaded ? (
                                         <div className="p-3 text-red-600 bg-red-50 font-bold">
-                                            ⚠️ Google Maps não carregado!
+                                            ⚠️ API do Google carregando ou não configurada...
                                         </div>
                                     ) : isSearchingLocation ? (
                                         <div className="p-3 text-blue-600 bg-blue-50">
