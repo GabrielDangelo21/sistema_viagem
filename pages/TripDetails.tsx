@@ -698,8 +698,18 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                 let unassignedDays = [...days];
 
                                 sortedStays.forEach(stay => {
-                                    const stayDays = unassignedDays.filter(d => d.date >= stay.startDate && d.date <= stay.endDate);
-                                    unassignedDays = unassignedDays.filter(d => !(d.date >= stay.startDate && d.date <= stay.endDate));
+                                    const sStart = stay.startDate.substring(0, 10);
+                                    const sEnd = stay.endDate.substring(0, 10);
+
+                                    const stayDays = unassignedDays.filter(d => {
+                                        const dDate = d.date.substring(0, 10);
+                                        return dDate >= sStart && dDate <= sEnd;
+                                    });
+
+                                    unassignedDays = unassignedDays.filter(d => {
+                                        const dDate = d.date.substring(0, 10);
+                                        return !(dDate >= sStart && dDate <= sEnd);
+                                    });
 
                                     grouped.push({ type: 'stay', stay, days: stayDays });
                                 });
