@@ -31,6 +31,7 @@ export interface Trip {
   defaultCurrency?: string;
   createdAt: string; // ISO_DATETIME
   updatedAt: string; // ISO_DATETIME
+  stays?: Stay[];
 }
 
 export interface ItineraryDay {
@@ -39,6 +40,15 @@ export interface ItineraryDay {
   date: string; // ISO_DATE
   title?: string;
   createdAt: string; // ISO_DATETIME
+}
+
+export interface Stay {
+  id: string;
+  tripId: string;
+  name: string;
+  startDate: string; // ISO_DATE
+  endDate: string; // ISO_DATE
+  createdAt?: string; // ISO_DATETIME
 }
 
 export interface Activity {

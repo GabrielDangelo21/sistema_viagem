@@ -51,6 +51,7 @@ model Trip {
   updatedAt   DateTime @updatedAt
 
   workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  stays         Stay[]
   itineraryDays ItineraryDay[]
   reservations  Reservation[]
   participants  Participant[]
@@ -59,6 +60,21 @@ model Trip {
   
   @@index([workspaceId])
   @@map("trips")
+}
+
+model Stay {
+  id        String   @id @default(uuid())
+  tripId    String
+  name      String
+  startDate String   // ISO_DATE
+  endDate   String   // ISO_DATE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@map("stays")
 }
 
 model ChecklistItem {

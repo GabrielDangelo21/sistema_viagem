@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { supabase } from '../lib/supabase';
 import { handleApiError } from '../services/handleApiError';
-import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus, ChecklistItem, Participant } from '../types';
+import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus, ChecklistItem, Participant, Stay } from '../types';
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
 import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2, Check, List, Users, Wallet } from 'lucide-react';
 
@@ -18,6 +18,7 @@ const TRIP_TYPES = [
 
 import { ParticipantsList } from '../components/ParticipantsList';
 import { FinanceModule } from '../components/FinanceModule';
+import { StayModal } from '../components/StayModal';
 
 interface TripDetailsProps {
     tripId?: string;
@@ -26,7 +27,7 @@ interface TripDetailsProps {
 }
 
 export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, onNavigate }) => {
-    const [data, setData] = useState<{ trip: TripUI, days: ItineraryDay[], activities: Activity[], reservations: Reservation[] } | null>(null);
+    const [data, setData] = useState<{ trip: TripUI, days: ItineraryDay[], activities: Activity[], reservations: Reservation[], stays: Stay[] } | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'reservations' | 'participants' | 'finances' | 'checklist'>(initialTab || 'overview');
     const { toast } = useToast();
@@ -36,7 +37,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const [overviewLoading, setOverviewLoading] = useState(false);
 
     // Modals
-    const [modalOpen, setModalOpen] = useState<'activity' | 'reservation' | 'delete-res' | 'edit-trip' | null>(null);
+    const [modalOpen, setModalOpen] = useState<'activity' | 'reservation' | 'delete-res' | 'edit-trip' | 'stay' | 'delete-stay' | null>(null);
 
     // State for Edit Trip Form
     const [editTripForm, setEditTripForm] = useState({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', type: 'lazer', budget: null as number | null, defaultCurrency: 'BRL' });
@@ -57,6 +58,11 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
     const [newItemText, setNewItemText] = useState('');
     const [checklistLoaded, setChecklistLoaded] = useState(false);
+
+    // State for Stay Form
+    const [editingStay, setEditingStay] = useState<Stay | null>(null);
+    const [deletingStayId, setDeletingStayId] = useState<string | null>(null);
+    const [stayError, setStayError] = useState<string | null>(null);
 
     // State for Activity Form
     const [newActivity, setNewActivity] = useState<Partial<Activity>>({ title: '' });
@@ -209,6 +215,53 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     };
 
 
+
+    // --- STAY HANDLERS ---
+    const handleNewStay = () => {
+        setEditingStay(null);
+        setModalOpen('stay');
+    };
+
+    const handleEditStay = (stay: Stay) => {
+        setEditingStay(stay);
+        setModalOpen('stay');
+    };
+
+    const handleSaveStay = async (stayData: Partial<Stay>) => {
+        if (!data) return;
+        try {
+            if (editingStay) {
+                await api.updateStay(data.trip.id, editingStay.id, stayData);
+                toast({ message: 'Estadia atualizada!', type: 'success' });
+            } else {
+                await api.createStay(data.trip.id, stayData as any);
+                toast({ message: 'Estadia criada!', type: 'success' });
+            }
+            fetchData(data.trip.id);
+        } catch (err: any) {
+            throw err; // Let modal handle error display
+        }
+    };
+
+    const handleDeleteStayClick = (id: string) => {
+        setDeletingStayId(id);
+        setStayError(null);
+        setModalOpen('delete-stay');
+    };
+
+    const confirmDeleteStay = async () => {
+        if (!deletingStayId || !data) return;
+        try {
+            await api.deleteStay(data.trip.id, deletingStayId);
+            setModalOpen(null);
+            fetchData(data.trip.id);
+            toast({ message: 'Estadia removida.', type: 'success' });
+        } catch (err: any) {
+            setStayError(handleApiError(err).message);
+        } finally {
+            if (!stayError) setDeletingStayId(null);
+        }
+    };
 
     // --- ACTIVITY HANDLERS ---
     const handleAddActivity = async (e: React.FormEvent) => {
@@ -382,7 +435,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
     if (loading || !data) return <div className="p-8 text-center">Carregando detalhes...</div>;
 
-    const { trip, days, activities, reservations } = data;
+    const { trip, days, activities, reservations, stays } = data;
 
     // Group reservations by type
     const groupedReservations = reservations.reduce((acc, res) => {
@@ -628,69 +681,116 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                 {/* ITINERARY TAB */}
                 {activeTab === 'itinerary' && (
                     <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                             <h2 className="text-xl font-bold text-gray-800">Dia a Dia</h2>
-                            <Button size="sm" onClick={() => setModalOpen('activity')}><Plus size={16} className="mr-1" /> Adicionar</Button>
+                            <div className="flex gap-2">
+                                <Button size="sm" variant="secondary" onClick={handleNewStay}><MapPin size={16} className="mr-1" /> Nova Estadia</Button>
+                                <Button size="sm" onClick={() => setModalOpen('activity')}><Plus size={16} className="mr-1" /> Atividade</Button>
+                            </div>
                         </div>
 
-                        <div className="relative border-l-2 border-gray-200 ml-3 md:ml-6 space-y-10 pb-4">
-                            {days.map((day) => {
-                                const dayActs = activities.filter(a => a.dayId === day.id);
-                                return (
-                                    <div key={day.id} className="relative pl-6 md:pl-10">
-                                        {/* Day Marker */}
-                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-500 border-4 border-white shadow-sm" />
+                        <div className="space-y-12">
+                            {(() => {
+                                // Group days by stays
+                                const grouped = [];
+                                const sortedStays = [...(stays || [])].sort((a, b) => a.startDate.localeCompare(b.startDate));
 
-                                        <div className="mb-4">
-                                            <h3 className="text-lg font-bold text-gray-900">{day.title}</h3>
-                                            <p className="text-sm text-gray-500 capitalize">
-                                                {formatDate(day.date, 'day-header')}
-                                            </p>
-                                        </div>
+                                let unassignedDays = [...days];
 
-                                        {dayActs.length > 0 ? (
-                                            <div className="space-y-3">
-                                                {dayActs.map((act) => (
-                                                    <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-4 hover:border-brand-200 transition-colors group">
-                                                        <div className="flex flex-col items-center justify-center w-12 text-gray-400 text-xs font-medium border-r border-gray-100 pr-4">
-                                                            {act.timeStart ? (
-                                                                <>
-                                                                    <span>{act.timeStart}</span>
-                                                                    {act.timeEnd && <span className="text-[10px] opacity-60">to {act.timeEnd}</span>}
-                                                                </>
-                                                            ) : (
-                                                                <Clock size={16} />
-                                                            )}
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <h4 className="font-semibold text-gray-800">{act.title}</h4>
-                                                            {act.locationName && (
-                                                                <p className="text-sm text-gray-500 flex items-center mt-1">
-                                                                    <MapPin size={12} className="mr-1" /> {act.locationName}
-                                                                </p>
-                                                            )}
-                                                            {act.cost && (
-                                                                <p className="text-xs text-green-600 font-medium mt-1 flex items-center">
-                                                                    <DollarSign size={10} /> {act.currency || 'R$'} {act.cost}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                        {/* Reorder Placeholder */}
-                                                        <div className="hidden group-hover:flex flex-col gap-1 text-gray-300">
-                                                            <MoveUp size={14} className="hover:text-gray-500 cursor-pointer" />
-                                                            <MoveDown size={14} className="hover:text-gray-500 cursor-pointer" />
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="text-sm text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200">
-                                                Nenhuma atividade planejada.
+                                sortedStays.forEach(stay => {
+                                    const stayDays = unassignedDays.filter(d => d.date >= stay.startDate && d.date <= stay.endDate);
+                                    unassignedDays = unassignedDays.filter(d => !(d.date >= stay.startDate && d.date <= stay.endDate));
+
+                                    grouped.push({ type: 'stay', stay, days: stayDays });
+                                });
+
+                                if (unassignedDays.length > 0) {
+                                    grouped.unshift({ type: 'unassigned', days: unassignedDays.sort((a, b) => a.date.localeCompare(b.date)) });
+                                }
+
+                                return grouped.map((group, gIdx) => (
+                                    <div key={group.type === 'stay' ? group.stay.id : 'unassigned'} className="space-y-6">
+                                        {group.type === 'stay' && (
+                                            <div className="bg-brand-50 rounded-2xl p-4 md:p-6 border border-brand-100 flex justify-between items-center group">
+                                                <div>
+                                                    <h3 className="text-lg md:text-xl font-bold text-brand-900 flex items-center gap-2">
+                                                        <MapPin size={20} className="text-brand-600" />
+                                                        {group.stay.name}
+                                                    </h3>
+                                                    <p className="text-brand-700/80 text-sm mt-1 font-medium">
+                                                        {formatDate(group.stay.startDate, 'select')} a {formatDate(group.stay.endDate, 'select')}
+                                                        ({group.days.length} diárias planejadas)
+                                                    </p>
+                                                </div>
+                                                <div className="flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => handleEditStay(group.stay)} className="p-2 bg-white/60 hover:bg-white text-brand-700 rounded-full transition-colors shadow-sm"><Edit2 size={16} /></button>
+                                                    <button onClick={() => handleDeleteStayClick(group.stay.id)} className="p-2 bg-white/60 hover:bg-white text-red-600 rounded-full transition-colors shadow-sm"><Trash2 size={16} /></button>
+                                                </div>
                                             </div>
                                         )}
+
+                                        <div className="relative border-l-2 border-gray-200 ml-3 md:ml-6 space-y-10 pb-4">
+                                            {group.days.map((day) => {
+                                                const dayActs = activities.filter(a => a.dayId === day.id).sort((a, b) => (a.timeStart || '24:00').localeCompare((b.timeStart || '24:00')));
+                                                return (
+                                                    <div key={day.id} className="relative pl-6 md:pl-10">
+                                                        {/* Day Marker */}
+                                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-500 border-4 border-white shadow-sm" />
+
+                                                        <div className="mb-4">
+                                                            <h3 className="text-lg font-bold text-gray-900">{day.title}</h3>
+                                                            <p className="text-sm text-gray-500 capitalize">
+                                                                {formatDate(day.date, 'day-header')}
+                                                            </p>
+                                                        </div>
+
+                                                        {dayActs.length > 0 ? (
+                                                            <div className="space-y-3">
+                                                                {dayActs.map((act) => (
+                                                                    <div key={act.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-4 hover:border-brand-200 transition-colors group">
+                                                                        <div className="flex flex-col items-center justify-center w-12 text-gray-400 text-xs font-medium border-r border-gray-100 pr-4">
+                                                                            {act.timeStart ? (
+                                                                                <>
+                                                                                    <span>{act.timeStart}</span>
+                                                                                    {act.timeEnd && <span className="text-[10px] opacity-60">to {act.timeEnd}</span>}
+                                                                                </>
+                                                                            ) : (
+                                                                                <Clock size={16} />
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <h4 className="font-semibold text-gray-800">{act.title}</h4>
+                                                                            {act.locationName && (
+                                                                                <p className="text-sm text-gray-500 flex items-center mt-1">
+                                                                                    <MapPin size={12} className="mr-1" /> {act.locationName}
+                                                                                </p>
+                                                                            )}
+                                                                            {act.cost && (
+                                                                                <p className="text-xs text-green-600 font-medium mt-1 flex items-center">
+                                                                                    <DollarSign size={10} /> {act.currency || 'R$'} {act.cost}
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
+                                                                        {/* Reorder Placeholder */}
+                                                                        <div className="hidden group-hover:flex flex-col gap-1 text-gray-300">
+                                                                            <MoveUp size={14} className="hover:text-gray-500 cursor-pointer" />
+                                                                            <MoveDown size={14} className="hover:text-gray-500 cursor-pointer" />
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-sm text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200">
+                                                                Nenhuma atividade planejada.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                );
-                            })}
+                                ));
+                            })()}
                         </div>
                     </div>
                 )}
@@ -1196,6 +1296,33 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     </div>
                 </div>
             </Modal >
+
+            {/* Stay Modal */}
+            <StayModal
+                isOpen={modalOpen === 'stay'}
+                onClose={() => setModalOpen(null)}
+                onSave={handleSaveStay}
+                stay={editingStay}
+                tripStartDate={trip.startDate}
+                tripEndDate={trip.endDate}
+            />
+
+            {/* Delete Stay Confirmation */}
+            <Modal isOpen={modalOpen === 'delete-stay'} onClose={() => setModalOpen(null)} title="Excluir Estadia/Base?">
+                <div className="py-2">
+                    {stayError && (
+                        <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2 mb-4">
+                            <XCircle size={16} /> {stayError}
+                        </div>
+                    )}
+                    <p className="text-gray-600 mb-6 font-medium">Tem certeza que deseja remover esta estadia?</p>
+                    <p className="text-gray-500 text-sm mb-6">Esta ação removerá apenas o agrupamento. Os dias e atividades em si não serão excluídos, apenas voltarão a ficar desagrupados.</p>
+                    <div className="flex justify-end gap-2">
+                        <Button variant="ghost" onClick={() => setModalOpen(null)}>Cancelar</Button>
+                        <Button variant="danger" onClick={confirmDeleteStay}>Excluir</Button>
+                    </div>
+                </div>
+            </Modal>
         </div >
     );
 };

@@ -1,7 +1,7 @@
 import {
   User, Workspace, Trip, ItineraryDay, Activity, Reservation,
   TripStatus, TripUI, CurrentUser, ReservationType, ReservationStatus,
-  Participant, Expense, ExpenseShare, ChecklistItem,
+  Participant, Expense, ExpenseShare, ChecklistItem, Stay
 } from '../types';
 
 import { supabase } from '../lib/supabase';
@@ -101,6 +101,7 @@ export const api = {
     // Extract days and activities from trip structure
     const days = trip.itineraryDays || [];
     const reservations = trip.reservations || [];
+    const stays = trip.stays || [];
 
     // Extract activities from days
     const activities = days.flatMap((day: any) =>
@@ -117,13 +118,57 @@ export const api = {
       trip: tripData as TripUI,
       days: days.map(({ activities, ...day }: any) => day) as ItineraryDay[],
       activities: activities as Activity[],
-      reservations: reservations as Reservation[]
+      reservations: reservations as Reservation[],
+      stays: stays as Stay[]
     };
   },
 
   deleteTrip: async (tripId: string): Promise<{ success: boolean }> => {
     const headers = await getAuthHeaders();
     const res = await fetch(`${API_URL}/trips/${tripId}`, {
+      method: 'DELETE',
+      headers
+    });
+    await handleResponse(res);
+    return { success: true };
+  },
+
+  // --- STAYS ---
+  getStays: async (tripId: string): Promise<Stay[]> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/trips/${tripId}/stays`, { headers });
+    return handleResponse(res);
+  },
+
+  createStay: async (tripId: string, payload: { name: string, startDate: string, endDate: string }): Promise<Stay> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/trips/${tripId}/stays`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(res);
+  },
+
+  updateStay: async (tripId: string, stayId: string, payload: Partial<{ name: string, startDate: string, endDate: string }>): Promise<Stay> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/trips/${tripId}/stays/${stayId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    return handleResponse(res);
+  },
+
+  deleteStay: async (tripId: string, stayId: string): Promise<{ success: boolean }> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/trips/${tripId}/stays/${stayId}`, {
       method: 'DELETE',
       headers
     });
