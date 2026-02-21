@@ -73,10 +73,10 @@ const SortableActivity = ({ act, onEdit, onDelete }: { act: any, onEdit: any, on
             </div>
 
             <div className="flex gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity items-center shrink-0 pr-2">
-                <button onClick={() => onEdit(act)} className="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Editar">
+                <button onClick={() => onEdit(act)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Editar">
                     <Edit2 size={16} />
                 </button>
-                <button onClick={() => onDelete(act.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
+                <button onClick={() => onDelete(act.id)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
                     <Trash2 size={16} />
                 </button>
             </div>
