@@ -1211,9 +1211,15 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             value={selectedDayId}
                             onChange={(e) => setSelectedDayId(e.target.value)}
                         >
-                            {days.map(d => (
-                                <option key={d.id} value={d.id}>{formatDate(d.date, 'select')}{d.title ? ` - ${d.title}` : ''}</option>
-                            ))}
+                            {[...days].sort((a, b) => a.date.localeCompare(b.date)).map(d => {
+                                const dayActivities = activities.filter(a => a.dayId === d.id);
+                                const titleStr = d.title?.trim() || (dayActivities.length > 0 ? dayActivities[0].title : '');
+                                return (
+                                    <option key={d.id} value={d.id}>
+                                        {formatDate(d.date, 'select')}{titleStr ? ` - ${titleStr}` : ''}
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
                     <div>
