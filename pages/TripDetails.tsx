@@ -310,7 +310,21 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         }
     };
 
-    // --- AUTOCOMPLETE HANDLERS ---
+    // --- GOOGLE MAPS AUTOCOMPLETE HANDLERS ---
+    const autocompleteService = useRef<any>(null);
+    const placesService = useRef<any>(null);
+
+    useEffect(() => {
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
+        if (!apiKey || (window as any).google) return;
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=pt-BR`;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    }, []);
+
     const fetchLocationSuggestions = async (query: string) => {
         if (!query || query.length < 2) {
             setLocationSuggestions([]);
@@ -318,19 +332,26 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             return;
         }
 
+        const google = (window as any).google;
+        if (!google) return;
+
+        if (!autocompleteService.current) {
+            autocompleteService.current = new google.maps.places.AutocompleteService();
+        }
+
         setIsSearchingLocation(true);
         try {
-            // Concatenamos o destino da viagem para priorizar resultados na região correta
-            const fullQuery = `${query}${data?.trip.destination ? `, ${data.trip.destination}` : ''}`;
-            const res = await fetch(`https://photon.komoot.io/api?q=${encodeURIComponent(fullQuery)}&limit=10`);
-            if (res.ok) {
-                const results = await res.json();
-                setLocationSuggestions(results.features || []);
-                setShowLocationDropdown(true);
-            }
+            autocompleteService.current.getPlacePredictions({ input: query }, (predictions: any, status: any) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                    setLocationSuggestions(predictions);
+                    setShowLocationDropdown(true);
+                } else {
+                    setLocationSuggestions([]);
+                }
+                setIsSearchingLocation(false);
+            });
         } catch (err) {
-            console.error('Error fetching location', err);
-        } finally {
+            console.error('Error fetching Google suggestions', err);
             setIsSearchingLocation(false);
         }
     };
@@ -347,18 +368,31 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         }, 500);
     };
 
-    const handleLocationSelect = (feature: any) => {
-        const { name, city, state, country } = feature.properties;
-        const displayName = [name, city, state, country].filter(Boolean).join(', ');
-
+    const handleLocationSelect = (prediction: any) => {
+        const displayName = prediction.description;
         setLocationQuery(displayName);
-        setNewActivity(prev => ({
-            ...prev,
-            locationName: displayName,
-            latitude: feature.geometry.coordinates[1],
-            longitude: feature.geometry.coordinates[0]
-        }));
         setShowLocationDropdown(false);
+
+        const google = (window as any).google;
+        if (!google) return;
+
+        const dummy = document.createElement('div');
+        if (!placesService.current) {
+            placesService.current = new google.maps.places.PlacesService(dummy);
+        }
+
+        placesService.current.getDetails({ placeId: prediction.place_id }, (place: any, status: any) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+                setNewActivity(prev => ({
+                    ...prev,
+                    locationName: displayName,
+                    latitude: place.geometry.location.lat(),
+                    longitude: place.geometry.location.lng()
+                }));
+            } else {
+                setNewActivity(prev => ({ ...prev, locationName: displayName }));
+            }
+        });
     };
 
     const handleSaveActivity = async (e: React.FormEvent) => {
@@ -1187,21 +1221,22 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                             Nenhum local encontrado.
                                         </div>
                                     ) : (
-                                        locationSuggestions.map((feature: any, idx) => {
-                                            const { name, city, country } = feature.properties;
-                                            const label = [name, city, country].filter(Boolean).join(', ');
-                                            return (
-                                                <div
-                                                    key={feature.properties.osm_id || idx}
-                                                    className="relative cursor-pointer select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-brand-50 hover:text-brand-900"
-                                                    onClick={() => handleLocationSelect(feature)}
-                                                >
-                                                    <span className="block truncate line-clamp-2 white-space-normal">
-                                                        {label}
+                                        locationSuggestions.map((prediction: any, idx) => (
+                                            <div
+                                                key={prediction.place_id || idx}
+                                                className="relative cursor-pointer select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-brand-50 hover:text-brand-900"
+                                                onClick={() => handleLocationSelect(prediction)}
+                                            >
+                                                <div className="flex flex-col">
+                                                    <span className="block truncate font-medium">
+                                                        {prediction.structured_formatting.main_text}
+                                                    </span>
+                                                    <span className="block truncate text-xs text-gray-500">
+                                                        {prediction.structured_formatting.secondary_text}
                                                     </span>
                                                 </div>
-                                            );
-                                        })
+                                            </div>
+                                        ))
                                     )}
                                 </div>
                             )}
