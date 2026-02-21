@@ -312,7 +312,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
     // --- AUTOCOMPLETE HANDLERS ---
     const fetchLocationSuggestions = async (query: string) => {
-        if (!query || query.length < 3) {
+        if (!query || query.length < 2) {
             setLocationSuggestions([]);
             setShowLocationDropdown(false);
             return;
@@ -320,13 +320,12 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
         setIsSearchingLocation(true);
         try {
-            const searchQuery = `${query}${data?.trip.destination ? `, ${data.trip.destination}` : ''}`;
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`, {
-                headers: { 'User-Agent': 'TravelSystemApp/1.0' }
-            });
+            // Photon API é muito melhor para autocomplete "search-as-you-type"
+            // Não precisamos concatenar o destino tão agressivamente pois ele entende contexto global melhor
+            const res = await fetch(`https://photon.komoot.io/api?q=${encodeURIComponent(query)}&limit=5`);
             if (res.ok) {
                 const results = await res.json();
-                setLocationSuggestions(results);
+                setLocationSuggestions(results.features || []);
                 setShowLocationDropdown(true);
             }
         } catch (err) {
@@ -348,13 +347,16 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         }, 500);
     };
 
-    const handleLocationSelect = (loc: any) => {
-        setLocationQuery(loc.display_name);
+    const handleLocationSelect = (feature: any) => {
+        const { name, city, state, country } = feature.properties;
+        const displayName = [name, city, state, country].filter(Boolean).join(', ');
+
+        setLocationQuery(displayName);
         setNewActivity(prev => ({
             ...prev,
-            locationName: loc.display_name,
-            latitude: parseFloat(loc.lat),
-            longitude: parseFloat(loc.lon)
+            locationName: displayName,
+            latitude: feature.geometry.coordinates[1],
+            longitude: feature.geometry.coordinates[0]
         }));
         setShowLocationDropdown(false);
     };
@@ -1185,17 +1187,21 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                             Nenhum local encontrado.
                                         </div>
                                     ) : (
-                                        locationSuggestions.map((loc: any, idx) => (
-                                            <div
-                                                key={loc.place_id || idx}
-                                                className="relative cursor-pointer select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-brand-50 hover:text-brand-900"
-                                                onClick={() => handleLocationSelect(loc)}
-                                            >
-                                                <span className="block truncate line-clamp-2 white-space-normal">
-                                                    {loc.display_name}
-                                                </span>
-                                            </div>
-                                        ))
+                                        locationSuggestions.map((feature: any, idx) => {
+                                            const { name, city, country } = feature.properties;
+                                            const label = [name, city, country].filter(Boolean).join(', ');
+                                            return (
+                                                <div
+                                                    key={feature.properties.osm_id || idx}
+                                                    className="relative cursor-pointer select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-brand-50 hover:text-brand-900"
+                                                    onClick={() => handleLocationSelect(feature)}
+                                                >
+                                                    <span className="block truncate line-clamp-2 white-space-normal">
+                                                        {label}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })
                                     )}
                                 </div>
                             )}
