@@ -494,7 +494,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             <div className="flex items-center gap-1.5 text-gray-200">
                                 <MapPin size={14} />
                                 <span className="text-sm font-medium">{trip.destination}</span>
-                                <button onClick={handleEditTripClick} className="ml-1 p-1.5 hover:bg-white/20 rounded-full transition-colors" title="Editar Viagem">
+                                <button onClick={handleEditTripClick} className="ml-1 p-1.5 hover:bg-white/20 rounded-full transition-colors inline-flex items-center justify-center" title="Editar Viagem">
                                     <Edit2 size={14} />
                                 </button>
                             </div>

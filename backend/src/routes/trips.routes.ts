@@ -144,6 +144,7 @@ export async function tripsRoutes(app: FastifyInstance) {
             include: {
                 itineraryDays: { include: { activities: true } },
                 reservations: { orderBy: { startDateTime: 'asc' } },
+                stays: { orderBy: { startDate: 'asc' } },
                 participants: true // Include participants to check access
             }
         });
