@@ -320,9 +320,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
         setIsSearchingLocation(true);
         try {
-            // Photon API é muito melhor para autocomplete "search-as-you-type"
-            // Não precisamos concatenar o destino tão agressivamente pois ele entende contexto global melhor
-            const res = await fetch(`https://photon.komoot.io/api?q=${encodeURIComponent(query)}&limit=5`);
+            // Concatenamos o destino da viagem para priorizar resultados na região correta
+            const fullQuery = `${query}${data?.trip.destination ? `, ${data.trip.destination}` : ''}`;
+            const res = await fetch(`https://photon.komoot.io/api?q=${encodeURIComponent(fullQuery)}&limit=10`);
             if (res.ok) {
                 const results = await res.json();
                 setLocationSuggestions(results.features || []);
