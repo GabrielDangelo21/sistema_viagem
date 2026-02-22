@@ -23,7 +23,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
       {/* Mobile Theme Toggle (Floating Top Right) */}
       <button
         onClick={toggleTheme}
-        className="md:hidden fixed top-4 right-4 z-50 p-2.5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-full shadow-sm transition-all"
+        className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 flex items-center justify-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-full shadow-sm transition-all"
         title="Alternar Tema"
       >
         {actualTheme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
@@ -38,7 +38,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
           </h1>
           <button
             onClick={toggleTheme}
-            className="p-2 text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
             title="Alternar Tema"
           >
             {actualTheme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
