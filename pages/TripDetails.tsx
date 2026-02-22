@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { supabase } from '../lib/supabase';
 import { handleApiError } from '../services/handleApiError';
-import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus, ChecklistItem, Participant, Stay } from '../types';
+import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus, ChecklistItem, Participant, Stay, Expense } from '../types';
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
 import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2, Check, List, Users, Wallet, Activity as ActivityIcon } from 'lucide-react';
 
@@ -18,6 +18,7 @@ const TRIP_TYPES = [
 
 import { ParticipantsList } from '../components/ParticipantsList';
 import { FinanceModule } from '../components/FinanceModule';
+import { FinanceCharts } from '../components/FinanceCharts';
 import { StayModal } from '../components/StayModal';
 import { ItineraryTab } from '../components/ItineraryTab';
 
@@ -34,7 +35,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const { toast } = useToast();
 
     // State for overview
-    const [overviewData, setOverviewData] = useState<{ participants: Participant[], balances: any } | null>(null);
+    const [overviewData, setOverviewData] = useState<{ participants: Participant[], balances: any, expenses: Expense[] } | null>(null);
     const [overviewLoading, setOverviewLoading] = useState(false);
 
     // Modals
@@ -113,11 +114,12 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             setOverviewLoading(true);
             const loadOverview = async () => {
                 try {
-                    const [p, b] = await Promise.all([
+                    const [p, b, e] = await Promise.all([
                         api.getParticipants(data.trip.id),
-                        api.getBalances(data.trip.id).catch(() => ({ balances: {}, suggestedPayments: [] }))
+                        api.getBalances(data.trip.id).catch(() => ({ balances: {}, suggestedPayments: [] })),
+                        api.getExpenses(data.trip.id).catch(() => [])
                     ]);
-                    setOverviewData({ participants: p, balances: b });
+                    setOverviewData({ participants: p, balances: b, expenses: e });
                 } catch (e) {
                     console.error(e);
                 } finally {
@@ -846,6 +848,18 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                         )
                                     }) : <div className="text-sm text-gray-400 absolute inset-0 flex items-center justify-center">Nenhuma movimentação financeira.</div>}
                                 </div>
+
+                                {overviewData && overviewData.expenses && overviewData.expenses.length > 0 && (
+                                    <div className="mt-6 pt-6 border-t border-gray-100">
+                                        <FinanceCharts
+                                            compact
+                                            expenses={overviewData.expenses}
+                                            participants={overviewData.participants}
+                                            tripBudget={trip.budget}
+                                            tripCurrency={trip.defaultCurrency}
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                         </div>

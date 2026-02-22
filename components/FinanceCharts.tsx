@@ -8,11 +8,12 @@ interface FinanceChartsProps {
     participants: Participant[];
     tripBudget?: number | null;
     tripCurrency?: string;
+    compact?: boolean;
 }
 
 const UNCATEGORIZED_COLOR = '#d1d5db';
 
-export const FinanceCharts: React.FC<FinanceChartsProps> = ({ expenses, participants, tripBudget, tripCurrency = 'BRL' }) => {
+export const FinanceCharts: React.FC<FinanceChartsProps> = ({ expenses, participants, tripBudget, tripCurrency = 'BRL', compact = false }) => {
     const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
 
     // --- Category Donut Data ---
@@ -61,7 +62,7 @@ export const FinanceCharts: React.FC<FinanceChartsProps> = ({ expenses, particip
 
     if (expenses.length === 0) {
         return (
-            <div className="text-center py-16">
+            <div className={`text-center ${compact ? 'py-6' : 'py-16'}`}>
                 <p className="text-gray-400 text-lg">📊</p>
                 <p className="text-gray-500 mt-2">Adicione gastos para visualizar o resumo financeiro.</p>
             </div>
@@ -69,9 +70,9 @@ export const FinanceCharts: React.FC<FinanceChartsProps> = ({ expenses, particip
     }
 
     return (
-        <div className="space-y-8">
+        <div className={compact ? "space-y-4" : "space-y-8"}>
             {/* Top Row: Gauge + Donut */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={`grid grid-cols-1 ${compact ? 'lg:grid-cols-2' : 'md:grid-cols-2'} gap-4 md:gap-6`}>
                 {/* Budget Gauge */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                     <h3 className="font-bold text-gray-800 mb-1 text-base">Orçamento</h3>
@@ -169,7 +170,7 @@ export const FinanceCharts: React.FC<FinanceChartsProps> = ({ expenses, particip
             </div>
 
             {/* Category Progress Bars */}
-            {tripBudget && tripBudget > 0 && categoryBars.length > 0 && (
+            {!compact && tripBudget && tripBudget > 0 && categoryBars.length > 0 && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                     <h3 className="font-bold text-gray-800 mb-4 text-base">Impacto por Categoria no Orçamento</h3>
                     <div className="space-y-3">
@@ -194,7 +195,7 @@ export const FinanceCharts: React.FC<FinanceChartsProps> = ({ expenses, particip
             )}
 
             {/* Participant Spending Bars */}
-            {barData.length > 1 && (
+            {!compact && barData.length > 1 && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                     <h3 className="font-bold text-gray-800 mb-4 text-base">Gastos por Participante</h3>
                     <ResponsiveContainer width="100%" height={barData.length * 50 + 40}>
