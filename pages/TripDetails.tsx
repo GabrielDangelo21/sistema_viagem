@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { handleApiError } from '../services/handleApiError';
 import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus, ChecklistItem, Participant, Stay, Expense } from '../types';
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
-import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2, Check, List, Users, Wallet, Activity as ActivityIcon, MoveVertical } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2, Check, List, Users, Wallet, Activity as ActivityIcon, MoveVertical, MoveHorizontal } from 'lucide-react';
 
 const TRIP_TYPES = [
     { value: 'lazer', label: 'Lazer', emoji: '🏖️', color: 'bg-blue-100 text-blue-700' },
@@ -676,7 +676,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                 setActiveTab('overview');
                             }
                         }}
-                        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium w-fit"
+                        className="flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors font-medium w-fit"
                     >
                         <ArrowLeft size={20} />
                         <span>Voltar</span>
@@ -684,10 +684,10 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                 </div>
 
                 {/* Split Header Card */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row relative group mb-2 md:mb-6">
+                <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col md:flex-row relative group mb-2 md:mb-6 transition-colors duration-200">
 
                     {/* Left: Image Box */}
-                    <div className="w-full md:w-2/5 lg:w-1/3 relative h-64 md:h-auto min-h-[200px] md:min-h-[250px] bg-gray-100 flex-shrink-0">
+                    <div className="w-full md:w-2/5 lg:w-1/3 relative h-64 md:h-auto min-h-[200px] md:min-h-[250px] bg-slate-100 dark:bg-slate-800 flex-shrink-0">
                         {trip.coverImageUrl ? (
                             <>
                                 <img
@@ -699,9 +699,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
                                 {/* Repositioning Overlay */}
                                 {isRepositioningCover ? (
-                                    <div className="absolute inset-0 z-20 bg-black/60 flex flex-col items-center justify-center backdrop-blur-sm p-4">
-                                        <span className="mb-4 text-white font-medium bg-black/50 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm shadow-xl text-center">
-                                            <MoveVertical size={16} /> Arraste
+                                    <div className="absolute inset-0 z-20 bg-black/70 flex flex-col items-center justify-center backdrop-blur-sm p-4">
+                                        <span className="mb-4 text-white font-medium bg-black/60 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm shadow-xl text-center">
+                                            <MoveHorizontal size={16} /> Ajuste a posição
                                         </span>
                                         <input
                                             type="range"
@@ -709,15 +709,14 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                             max="100"
                                             value={previewOffset}
                                             onChange={(e) => setPreviewOffset(Number(e.target.value))}
-                                            className="w-48 accent-brand-500 mb-6"
-                                            style={{ transform: 'rotate(270deg)' }}
+                                            className="w-48 max-w-[90%] accent-brand-500 mb-6"
                                         />
-                                        <div className="flex flex-col gap-2 mt-4 w-full px-4">
-                                            <button onClick={handleSaveCoverOffset} className="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-500/30 text-sm">
-                                                Salvar Posição
-                                            </button>
-                                            <button onClick={handleCancelCoverOffset} className="w-full py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl font-medium transition-colors backdrop-blur-md text-sm">
+                                        <div className="flex gap-2 mt-2 w-full max-w-[200px] px-2">
+                                            <button onClick={handleCancelCoverOffset} className="flex-1 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl font-medium transition-colors backdrop-blur-md text-sm">
                                                 Cancelar
+                                            </button>
+                                            <button onClick={handleSaveCoverOffset} className="flex-1 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-500/30 text-sm">
+                                                Salvar
                                             </button>
                                         </div>
                                     </div>
@@ -731,7 +730,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                             className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-full backdrop-blur-md transition-colors shadow-lg"
                                             title="Reposicionar Imagem"
                                         >
-                                            <MoveVertical size={16} />
+                                            <MoveHorizontal size={16} />
                                         </button>
                                     </div>
                                 )}
@@ -749,15 +748,15 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <Badge status={trip.status} />
-                                    {(() => { const tt = TRIP_TYPES.find(t => t.value === trip.type); return tt ? <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${tt.color} border border-transparent`}>{tt.emoji} {tt.label}</span> : null; })()}
-                                    <span className="text-xs text-gray-600 font-medium bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                        <Calendar size={12} className="text-gray-500" />
+                                    {(() => { const tt = TRIP_TYPES.find(t => t.value === trip.type); return tt ? <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${tt.color} border border-transparent dark:opacity-90`}>{tt.emoji} {tt.label}</span> : null; })()}
+                                    <span className="text-xs text-slate-600 dark:text-slate-300 font-medium bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
+                                        <Calendar size={12} className="text-slate-500 dark:text-slate-400" />
                                         {formatDate(trip.startDate, 'range-start')} - {formatDate(trip.endDate, 'range-end')}
                                     </span>
                                 </div>
-                                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-gray-900">{trip.name}</h1>
-                                <div className="flex items-center gap-1.5 text-gray-500">
-                                    <MapPin size={16} className="text-gray-400" />
+                                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-slate-900 dark:text-white transition-colors">{trip.name}</h1>
+                                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                                    <MapPin size={16} className="text-slate-400 dark:text-slate-500" />
                                     <span className="text-sm font-medium">{trip.destination}</span>
                                 </div>
                             </div>
@@ -766,7 +765,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             <div className="flex items-center pt-2 md:pt-0">
                                 <button
                                     onClick={handleEditTripClick}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl font-medium transition-colors text-sm shadow-sm"
+                                    className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-medium transition-colors text-sm shadow-sm"
                                 >
                                     <Edit2 size={16} />
                                     <span>Editar Viagem</span>

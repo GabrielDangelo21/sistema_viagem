@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 antialiased;
+    @apply bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100 antialiased;
     -webkit-tap-highlight-color: transparent;
   }
 
