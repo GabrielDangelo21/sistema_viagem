@@ -18,29 +18,53 @@ export default function App() {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [requiresMfa, setRequiresMfa] = useState(false);
 
   useEffect(() => {
     // 1. Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
-      if (session) fetchProfile();
-      else setLoading(false);
+      if (session) {
+        await checkMfa();
+      } else {
+        setLoading(false);
+      }
     });
 
     // 2. Listen for changes (login/logout)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
-      if (session) fetchProfile();
-      else {
+      if (session) {
+        await checkMfa();
+      } else {
         setUser(null);
+        setRequiresMfa(false);
         setLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkMfa = async () => {
+    try {
+      const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (error) throw error;
+
+      if (data?.nextLevel === 'aal2' && data?.currentLevel === 'aal1') {
+        setRequiresMfa(true);
+        setLoading(false);
+      } else {
+        setRequiresMfa(false);
+        fetchProfile();
+      }
+    } catch (err) {
+      console.error('Error checking MFA:', err);
+      supabase.auth.signOut();
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -74,6 +98,10 @@ export default function App() {
 
   if (!session) {
     return <Login />;
+  }
+
+  if (requiresMfa) {
+    return <Login mfaChallengeMode onSuccess={() => checkMfa()} />;
   }
 
   const renderContent = () => {

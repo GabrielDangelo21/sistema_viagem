@@ -57,6 +57,19 @@ export const api = {
     return data.user;
   },
 
+  deleteMe: async (): Promise<{ success: boolean }> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/me`, {
+      method: 'DELETE',
+      headers
+    });
+
+    // Some routes might return 204
+    if (res.status === 204) return { success: true };
+    await handleResponse(res);
+    return { success: true };
+  },
+
   // --- TRIPS ---
   listTrips: async (): Promise<TripUI[]> => {
     const headers = await getAuthHeaders();

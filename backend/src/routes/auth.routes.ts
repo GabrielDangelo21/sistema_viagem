@@ -67,4 +67,39 @@ export async function authRoutes(app: FastifyInstance) {
 
         return { user: updated };
     });
+
+    // Delete user account
+    app.delete('/me', async (request, reply) => {
+        const { dbUser } = request;
+        if (!dbUser) {
+            return reply.status(401).send({ message: 'Não autorizado' });
+        }
+
+        try {
+            await app.prisma.$transaction(async (tx) => {
+                // Delete user's workspaces (which cascades to trips, stays, etc. if setup or we just delete them)
+                // Note: Prisma might not natively cascade if referential actions aren't set in schema.
+                // However, based on schema, Workspace -> User is restricted. So we delete them manually.
+
+                const userWorkspaces = await tx.workspace.findMany({ where: { ownerUserId: dbUser.id } });
+                for (const ws of userWorkspaces) {
+                    await tx.workspace.delete({ where: { id: ws.id } });
+                }
+
+                // Unlink participant records (don't delete the record, just the user link)
+                await tx.participant.updateMany({
+                    where: { userId: dbUser.id },
+                    data: { userId: null }
+                });
+
+                // Finally delete the user
+                await tx.user.delete({ where: { id: dbUser.id } });
+            });
+
+            return reply.status(204).send();
+        } catch (error) {
+            request.log.error(error);
+            return reply.status(500).send({ message: 'Erro ao deletar conta' });
+        }
+    });
 }

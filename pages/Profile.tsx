@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CurrentUser, RouteName } from '../types';
 import { api } from '../services/api';
 import { supabase } from '../lib/supabase';
 import { Button, useToast } from '../components/UI';
-import { Camera, Globe, Languages, Clock, LogOut, Save, User as UserIcon, Loader2 } from 'lucide-react';
+import { Camera, Globe, Languages, Clock, LogOut, Save, User as UserIcon, Loader2, Key, ShieldAlert, ShieldCheck, Mail, Trash2, X, AlertTriangle } from 'lucide-react';
 
 interface ProfileProps {
     user: CurrentUser | null;
@@ -43,10 +43,37 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
     const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || '');
     const [timezone, setTimezone] = useState(user?.timezone || 'America/Sao_Paulo');
     const [locale, setLocale] = useState(user?.locale || 'pt-BR');
+
+    // Auth Advanced State
+    const [email, setEmail] = useState(user?.email || '');
+    const [isEditingEmail, setIsEditingEmail] = useState(false);
+
+    const [newPassword, setNewPassword] = useState('');
+    const [isEditingPassword, setIsEditingPassword] = useState(false);
+
+    const [isEnrolledMfa, setIsEnrolledMfa] = useState(false);
+    const [showMfaSetup, setShowMfaSetup] = useState(false);
+    const [mfaQrCode, setMfaQrCode] = useState('');
+    const [mfaSecret, setMfaSecret] = useState('');
+    const [mfaVerifyCode, setMfaVerifyCode] = useState('');
+    const [factorId, setFactorId] = useState('');
+
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
+
+    useEffect(() => {
+        // Obter status de MFA ao carregar a página
+        supabase.auth.mfa.listFactors().then(({ data }) => {
+            if (data?.totp && data.totp.length > 0) {
+                const enrolled = data.totp.find(f => f.status === 'verified');
+                if (enrolled) setIsEnrolledMfa(true);
+            }
+        });
+    }, []);
 
     const hasChanges =
         name !== (user?.name || '') ||
@@ -120,6 +147,116 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
         }
     };
 
+    // --- SECURE SYSTEM ACTIONS ---
+
+    const handleUpdateEmail = async () => {
+        if (email === user?.email) return setIsEditingEmail(false);
+        if (!email.trim() || !email.includes('@')) {
+            toast({ message: 'Um e-mail válido é obrigatório', type: 'error' });
+            return;
+        }
+        setSaving(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ email });
+            if (error) throw error;
+            toast({ message: 'Verifique ambos os e-mails (antigo e novo) para confirmar a alteração de endereço.', type: 'success' });
+            setIsEditingEmail(false);
+        } catch (err: any) {
+            toast({ message: err.message || 'Erro ao atualizar e-mail', type: 'error' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleUpdatePassword = async () => {
+        if (!newPassword || newPassword.length < 6) {
+            toast({ message: 'A nova senha deve ter no mínimo 6 caracteres', type: 'error' });
+            return;
+        }
+        setSaving(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+            if (error) throw error;
+            toast({ message: 'Senha atualizada com sucesso!', type: 'success' });
+            setIsEditingPassword(false);
+            setNewPassword('');
+        } catch (err: any) {
+            toast({ message: err.message || 'Erro ao atualizar senha', type: 'error' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleSetupMfa = async () => {
+        setSaving(true);
+        try {
+            const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
+            if (error) throw error;
+            setFactorId(data.id);
+            setMfaQrCode(data.totp.qr_code);
+            setMfaSecret(data.totp.secret);
+            setShowMfaSetup(true);
+        } catch (err: any) {
+            toast({ message: err.message || 'Erro ao iniciar MFA', type: 'error' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleVerifyMfa = async () => {
+        if (mfaVerifyCode.length !== 6) return;
+        setSaving(true);
+        try {
+            const challenge = await supabase.auth.mfa.challenge({ factorId });
+            if (challenge.error) throw challenge.error;
+            const verify = await supabase.auth.mfa.verify({
+                factorId,
+                challengeId: challenge.data.id,
+                code: mfaVerifyCode
+            });
+            if (verify.error) throw verify.error;
+            toast({ message: 'Autenticação de Dois Fatores ativada!', type: 'success' });
+            setIsEnrolledMfa(true);
+            setShowMfaSetup(false);
+            setMfaVerifyCode('');
+        } catch (err: any) {
+            toast({ message: err.message || 'Código de verificação inválido', type: 'error' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleUnenrollMfa = async () => {
+        setSaving(true);
+        try {
+            const { data } = await supabase.auth.mfa.listFactors();
+            const factor = data?.totp.find(f => f.status === 'verified');
+            if (factor) {
+                const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+                if (error) throw error;
+                toast({ message: 'Autenticação de Dois Fatores desativada.', type: 'success' });
+                setIsEnrolledMfa(false);
+            }
+        } catch (err: any) {
+            toast({ message: err.message || 'Erro ao desativar MFA', type: 'error' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        setSaving(true);
+        try {
+            await api.deleteMe();
+            await supabase.auth.signOut();
+            // User gets logged out and redirected natively by state machine.
+        } catch (error: any) {
+            toast({ message: error.message || 'Erro ao excluir a conta', type: 'error' });
+            setSaving(false);
+            setShowDeleteConfirm(false);
+        }
+    };
+
     const displayAvatar = avatarUrl || null;
     const planLabels: Record<string, string> = {
         free: 'Gratuito',
@@ -128,10 +265,10 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
     };
 
     return (
-        <div className="p-4 md:p-8 max-w-2xl mx-auto animate-in fade-in duration-500">
+        <div className="p-4 md:p-8 max-w-2xl mx-auto animate-in fade-in duration-500 pb-20">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Meu Perfil</h1>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
                 {/* Avatar Section */}
                 <div className="bg-gradient-to-r from-brand-500 to-brand-700 px-6 py-8 flex flex-col items-center">
                     <button
@@ -184,21 +321,6 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
                             placeholder="Seu nome"
                         />
-                    </div>
-
-                    {/* Email (read-only) */}
-                    <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
-                            <span className="text-gray-400 text-xs">@</span>
-                            E-mail
-                        </label>
-                        <input
-                            type="email"
-                            value={user?.email || ''}
-                            disabled
-                            className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-base text-gray-500 cursor-not-allowed"
-                        />
-                        <p className="text-xs text-gray-400 mt-1">O e-mail não pode ser alterado aqui.</p>
                     </div>
 
                     <hr className="border-gray-100" />
@@ -257,17 +379,204 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                         size="lg"
                     >
                         <Save size={18} className="mr-2" />
-                        Salvar Alterações
+                        Salvar Preferências
                     </Button>
-
-                    <button
-                        onClick={onLogout}
-                        className="w-full flex items-center justify-center gap-2 py-3 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium text-sm transition-colors"
-                    >
-                        <LogOut size={16} />
-                        Sair da conta
-                    </button>
                 </div>
+            </div>
+
+            {/* Configurações de Segurança e Acesso */}
+            <h2 className="text-lg font-bold text-gray-900 mb-4 ml-1 flex items-center gap-2">
+                <ShieldCheck className="text-brand-500" size={20} /> Segurança e Acesso
+            </h2>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8 divide-y divide-gray-100">
+                {/* Alterar Email */}
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 className="text-base font-bold text-gray-900">Endereço de E-mail</h3>
+                            <p className="text-sm text-gray-500">Seu e-mail atual é {user?.email}</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setIsEditingEmail(!isEditingEmail);
+                                setEmail(user?.email || '');
+                            }}
+                            className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors"
+                        >
+                            {isEditingEmail ? 'Cancelar' : 'Alterar'}
+                        </button>
+                    </div>
+
+                    {isEditingEmail && (
+                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                            <div className="relative flex-1">
+                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="email"
+                                    className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all"
+                                    placeholder="Novo endereço de e-mail"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </div>
+                            <Button onClick={handleUpdateEmail} loading={saving}>Atualizar E-mail</Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Alterar Senha */}
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 className="text-base font-bold text-gray-900">Mudar Senha</h3>
+                            <p className="text-sm text-gray-500">Altere sua senha de acesso a qualquer momento</p>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setIsEditingPassword(!isEditingPassword);
+                                setNewPassword('');
+                            }}
+                            className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors"
+                        >
+                            {isEditingPassword ? 'Cancelar' : 'Alterar'}
+                        </button>
+                    </div>
+
+                    {isEditingPassword && (
+                        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                            <div className="relative flex-1">
+                                <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="password"
+                                    className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all"
+                                    placeholder="Digite a nova senha"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                />
+                            </div>
+                            <Button onClick={handleUpdatePassword} loading={saving}>Redefinir Senha</Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* MFA */}
+                <div className="p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                                Autenticação de 2 Fatores (2FA)
+                                {isEnrolledMfa && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">Ativo</span>}
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Proteja sua conta exigindo um código de um app autenticador ao fazer login.
+                            </p>
+                        </div>
+                        {isEnrolledMfa ? (
+                            <button
+                                onClick={handleUnenrollMfa}
+                                disabled={saving}
+                                className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors"
+                            >
+                                Desativar
+                            </button>
+                        ) : (
+                            !showMfaSetup && (
+                                <button
+                                    onClick={handleSetupMfa}
+                                    disabled={saving}
+                                    className="bg-brand-50 text-brand-700 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-brand-100 transition-colors"
+                                >
+                                    Configurar
+                                </button>
+                            )
+                        )}
+                    </div>
+
+                    {showMfaSetup && !isEnrolledMfa && (
+                        <div className="mt-6 bg-gray-50 rounded-xl p-6 border border-gray-200">
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-bold text-gray-800">Complete a Configuração</h4>
+                                <button onClick={() => setShowMfaSetup(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-4">
+                                1. Escaneie o QR Code abaixo com seu aplicativo autenticador (ex: Google Authenticator, Authy).
+                            </p>
+                            <div className="flex justify-center mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                                <div dangerouslySetInnerHTML={{ __html: mfaQrCode }} className="w-48 h-48" />
+                            </div>
+                            <p className="text-xs text-gray-500 text-center mb-6">Também pode usar o código: <strong className="font-mono bg-gray-200 px-1 rounded text-gray-800">{mfaSecret}</strong></p>
+
+                            <p className="text-sm text-gray-600 mb-2">
+                                2. Digite o código de 6 dígitos gerado pelo aplicativo
+                            </p>
+                            <div className="flex gap-3">
+                                <input
+                                    type="text"
+                                    maxLength={6}
+                                    value={mfaVerifyCode}
+                                    onChange={(e) => setMfaVerifyCode(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="000000"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg tracking-widest text-center text-lg"
+                                />
+                                <Button onClick={handleVerifyMfa} loading={saving} disabled={mfaVerifyCode.length !== 6}>Verificar</Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Zona de Perigo */}
+            <div className="mt-12 bg-red-50/50 rounded-2xl border border-red-100 overflow-hidden">
+                <div className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h3 className="text-base font-bold text-red-700 flex items-center gap-2">
+                            <ShieldAlert size={18} /> Excluir Conta Definitivamente
+                        </h3>
+                        <p className="text-sm text-red-600/80 mt-1">Ao excluir sua conta, todas as suas viagens e dados serão apagados para sempre. Esta ação não pode ser desfeita.</p>
+                    </div>
+
+                    {!showDeleteConfirm ? (
+                        <button
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="bg-white text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-50 hover:border-red-300 transition-colors whitespace-nowrap shadow-sm"
+                        >
+                            Excluir Minha Conta
+                        </button>
+                    ) : (
+                        <div className="flex flex-col gap-2 w-full sm:w-auto">
+                            <span className="text-xs font-bold text-red-800 flex items-center gap-1">
+                                <AlertTriangle size={12} /> Tem certeza absoluta?
+                            </span>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors flex-1 text-center"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleDeleteAccount}
+                                    disabled={saving}
+                                    className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors flex-1 flex justify-center items-center shadow-lg shadow-red-600/20"
+                                >
+                                    {saving ? <Loader2 size={16} className="animate-spin" /> : 'Sim, Excluir'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="mt-8">
+                <button
+                    onClick={onLogout}
+                    className="w-full flex items-center justify-center gap-2 py-4 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl font-bold transition-colors"
+                >
+                    <LogOut size={16} />
+                    Sair da conta
+                </button>
             </div>
         </div>
     );

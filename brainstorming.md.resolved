@@ -11,7 +11,7 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 |:---|:---|:---|
 | 🔐 Autenticação | 🟢 Implementado | ~95% |
 | 🌍 Gestão de Viagens | 🟢 Implementado | 100% |
-| 🗺️ Roteiro Diário | 🟡 Parcial | ~50% |
+| 🗺️ Roteiro Diário | 🟢 Implementado | 100% |
 | 🏨 Reservas | 🟢 Implementado | ~75% |
 | 📂 Documentos | 🔴 Não Implementado | ~5% |
 | ⏰ Lembretes | 🔴 Não Implementado | 0% |
@@ -24,7 +24,7 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 
 ---
 
-## 🔐 Autenticação — 🟢 95%
+## 🔐 Autenticação e Segurança — 🟢 100%
 
 | Feature | Status | Notas |
 |:---|:---|:---|
@@ -32,7 +32,11 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 | Login com Google | ✅ | Configurado e funcional (OAuth Provider) |
 | Recuperação de senha | ✅ | [handleForgotPassword](file:///g:/Programacao/sistema_viagem/pages/Login.tsx#61-80) em [Login.tsx](file:///g:/Programacao/sistema_viagem/pages/Login.tsx) |
 | Magic Link | ✅ | [handleMagicLink](file:///g:/Programacao/sistema_viagem/pages/Login.tsx#44-60) implementado |
-| Perfil do usuário | ✅ | Nome, email, foto, fuso horário e idioma implementados |
+| Perfil do usuário | ✅ | Nome, e-mail (editável), foto, fuso horário e idioma |
+| Troca de senha (Interna) | ✅ | Adicionado formulário em `Profile.tsx` (via `updateUser`) |
+| Exclusão de conta | ✅ | Endpoint `DELETE /me` e Cascading DB; Confirmação UI em `Profile.tsx` |
+| Multi-Factor Auth (MFA) | ✅ | Configuração TOTP e Verificação em `App.tsx` / `Login.tsx` |
+| Alteração de E-mail | ✅ | Integração `updateUser` para troca de e-mail |
 
 ---
 
@@ -62,10 +66,10 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 | Criar dias automaticamente | ✅ | Baseado no intervalo de datas |
 | Adicionar atividades por dia | ✅ | CRUD de atividades |
 | Campos da atividade | ✅ | Título, horário, endereço, custo, notas |
-| Reordenar via drag-and-drop | ❌ | `orderIndex` existe mas sem DnD no frontend |
-| Visualização Lista | ✅ | |
-| Visualização Timeline | ❌ | |
-| Visualização Mapa Interativo | ❌ | |
+| Reordenar via drag-and-drop | ✅ | Implementado com `@dnd-kit` em `ItineraryTab.tsx` |
+| Visualização Lista | ✅ | Inclui suporte a agrupamento por estadia |
+| Visualização Timeline | ✅ | Implementada em `ItineraryTab.tsx` com ordenação cronológica |
+| Visualização Mapa Interativo | ✅ | Implementada com Leaflet integrando todos os pontos da viagem |
 
 ---
 
@@ -183,7 +187,8 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 
 ### 🥇 Prioridade Alta (Core Experience)
 1. **Módulo de Documentos** — Criar Storage bucket, implementar upload/download
-2. **Drag-and-Drop no Roteiro** — Reordenar atividades visualmente
+2. **Refinamento de Autenticação** — Implementar exclusão de conta e troca de senha interna
+3. **Sistema de Notificações** — Para lembretes e alterações em viagens compartilhadas
 
 ### 🥈 Prioridade Média (Diferenciação)
 5. **Recursos de IA** — Geração automática de roteiros (maior diferencial competitivo)
@@ -193,8 +198,7 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 
 ### 🥉 Prioridade Baixa (Escalabilidade Futura)
 9. **Gráficos financeiros** — Chart.js ou Recharts
-10. **Mapa interativo** — Google Maps/Mapbox no roteiro
-11. **Sync com Google Calendar**
+10. **Sync com Google Calendar**
 12. **Modo offline / App nativo**
 
 ---
