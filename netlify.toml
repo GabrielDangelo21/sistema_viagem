@@ -2,11 +2,6 @@
   command = "npm run build"
   publish = "dist"
 
-[build.environment]
-  VITE_SUPABASE_URL = "https://hhxaoitjibuqsybhknzc.supabase.co"
-  VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoeGFvaXRqaWJ1cXN5YmhrbnpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMjk0NDcsImV4cCI6MjA4NjkwNTQ0N30.1n7wyIog5GPHgzmu7pQ8WIjddqVHFEsXr3Ofq_j2smQ"
-  VITE_API_URL = "https://sistema-viagem.onrender.com/api"
-  VITE_GOOGLE_MAPS_KEY = "AIzaSyD2pGpM_5bGx5ERpp0caLq_DGJxl4Z9QXk"
 
 [dev]
   command = "npm run dev"
