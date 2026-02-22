@@ -190,6 +190,15 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
     const handleSetupMfa = async () => {
         setSaving(true);
         try {
+            // Limpa fatores não verificados anteriores para evitar erro 422
+            const { data: factors } = await supabase.auth.mfa.listFactors();
+            if (factors?.totp) {
+                const unverified = factors.totp.filter(f => (f.status as string) === 'unverified');
+                for (const f of unverified) {
+                    await supabase.auth.mfa.unenroll({ factorId: f.id });
+                }
+            }
+
             const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
             if (error) throw error;
             setFactorId(data.id);
@@ -503,8 +512,8 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                             <p className="text-sm text-gray-600 mb-4">
                                 1. Escaneie o QR Code abaixo com seu aplicativo autenticador (ex: Google Authenticator, Authy).
                             </p>
-                            <div className="flex justify-center mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                                <img src={mfaQrCode} alt="QR Code" className="w-48 h-48" />
+                            <div className="flex justify-center mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+                                <div dangerouslySetInnerHTML={{ __html: mfaQrCode.replace(/^data:image\/svg\+xml;utf-8,/, '') }} className="w-48 h-48 [&>svg]:w-full [&>svg]:h-full" />
                             </div>
                             <p className="text-xs text-gray-500 text-center mb-6">Também pode usar o código: <strong className="font-mono bg-gray-200 px-1 rounded text-gray-800">{mfaSecret}</strong></p>
 
