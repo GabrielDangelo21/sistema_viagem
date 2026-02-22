@@ -504,7 +504,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                                 1. Escaneie o QR Code abaixo com seu aplicativo autenticador (ex: Google Authenticator, Authy).
                             </p>
                             <div className="flex justify-center mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                                <div dangerouslySetInnerHTML={{ __html: mfaQrCode }} className="w-48 h-48" />
+                                <img src={mfaQrCode} alt="QR Code" className="w-48 h-48" />
                             </div>
                             <p className="text-xs text-gray-500 text-center mb-6">Também pode usar o código: <strong className="font-mono bg-gray-200 px-1 rounded text-gray-800">{mfaSecret}</strong></p>
 
@@ -529,9 +529,9 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
 
             {/* Zona de Perigo */}
             <div className="mt-12 bg-red-50/50 rounded-2xl border border-red-100 overflow-hidden">
-                <div className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="p-6 flex flex-col items-center text-center gap-4">
                     <div>
-                        <h3 className="text-base font-bold text-red-700 flex items-center gap-2">
+                        <h3 className="text-base font-bold text-red-700 flex items-center justify-center gap-2">
                             <ShieldAlert size={18} /> Excluir Conta Definitivamente
                         </h3>
                         <p className="text-sm text-red-600/80 mt-1">Ao excluir sua conta, todas as suas viagens e dados serão apagados para sempre. Esta ação não pode ser desfeita.</p>
