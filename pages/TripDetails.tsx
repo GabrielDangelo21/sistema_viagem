@@ -361,6 +361,10 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                 .map((s: any) => ({
                     description: s.placePrediction.text.text,
                     place_id: s.placePrediction.placeId,
+                    structured_formatting: {
+                        main_text: s.placePrediction.mainText?.text ?? s.placePrediction.text.text,
+                        secondary_text: s.placePrediction.secondaryText?.text ?? '',
+                    },
                 }));
             setLocationSuggestions(predictions);
             setShowLocationDropdown(predictions.length > 0);
