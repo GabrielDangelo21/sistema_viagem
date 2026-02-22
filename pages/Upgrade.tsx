@@ -30,13 +30,13 @@ export const Upgrade: React.FC<UpgradeProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 transition-colors">
       {/* Header Section */}
       <div className="pt-12 pb-10 px-4 text-center space-y-4 max-w-4xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight transition-colors">
           Escolha o plano ideal para sua jornada
         </h1>
-        <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+        <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
           Desbloqueie todo o potencial do TripNest e viaje com tranquilidade.
         </p>
 
@@ -54,18 +54,18 @@ export const Upgrade: React.FC<UpgradeProps> = ({ onNavigate }) => {
       <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-8 items-start mb-20">
 
         {/* Free Plan */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 opacity-90 hover:opacity-100 relative">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 opacity-90 hover:opacity-100 relative">
           <div className="mb-4">
-            <h3 className="font-bold text-gray-900 text-lg">Viajante Casual</h3>
-            <p className="text-sm text-gray-500 mt-1">Para quem viaja ocasionalmente.</p>
+            <h3 className="font-bold text-slate-900 dark:text-white text-lg">Viajante Casual</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Para quem viaja ocasionalmente.</p>
           </div>
           <div className="mb-6">
-            <span className="text-3xl font-bold text-gray-900">Grátis</span>
+            <span className="text-3xl font-bold text-slate-900 dark:text-white">Grátis</span>
           </div>
-          <Button variant="outline" className="w-full mb-6 font-medium text-gray-500 bg-gray-50 border-gray-200 cursor-default" disabled>
+          <Button variant="outline" className="w-full mb-6 font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 cursor-default" disabled>
             Plano Atual
           </Button>
-          <ul className="space-y-3 text-sm text-gray-600">
+          <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
             <li className="flex gap-3">
               <Check className="w-5 h-5 text-brand-500 shrink-0" />
               <span>Até 2 viagens ativas</span>
@@ -135,22 +135,22 @@ export const Upgrade: React.FC<UpgradeProps> = ({ onNavigate }) => {
         </div>
 
         {/* Family Plan */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 opacity-90 hover:opacity-100 relative">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 opacity-90 hover:opacity-100 relative">
           <div className="mb-4">
-            <h3 className="font-bold text-gray-900 text-lg">Família & Amigos</h3>
-            <p className="text-sm text-gray-500 mt-1">Planejamento colaborativo.</p>
+            <h3 className="font-bold text-slate-900 dark:text-white text-lg">Família & Amigos</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Planejamento colaborativo.</p>
           </div>
           <div className="mb-6 flex items-baseline gap-1">
-            <span className="text-3xl font-bold text-gray-900">R$ 34,90</span>
-            <span className="text-gray-500 font-medium">/mês</span>
+            <span className="text-3xl font-bold text-slate-900 dark:text-white">R$ 34,90</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">/mês</span>
           </div>
-          <Button variant="outline" className="w-full mb-6 font-medium border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50">
+          <Button variant="outline" className="w-full mb-6 font-medium border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/50">
             Escolher Família
           </Button>
 
           <div className="space-y-4">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Tudo do Globetrotter, mais:</p>
-            <ul className="space-y-3 text-sm text-gray-600">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tudo do Globetrotter, mais:</p>
+            <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
               <li className="flex gap-3">
                 <Users className="w-5 h-5 text-blue-500 shrink-0" />
                 <span>Até 5 colaboradores</span>
@@ -170,27 +170,27 @@ export const Upgrade: React.FC<UpgradeProps> = ({ onNavigate }) => {
 
       {/* FAQ Section */}
       <div className="max-w-2xl mx-auto px-4">
-        <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">Perguntas Frequentes</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-8 transition-colors">Perguntas Frequentes</h2>
         <div className="space-y-4">
           {faqs.map((faq, idx) => (
             <div
               key={idx}
-              className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer"
               onClick={() => toggleFaq(idx)}
             >
               <button className="w-full flex justify-between items-center p-5 text-left focus:outline-none">
-                <span className="font-medium text-gray-800">{faq.q}</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">{faq.q}</span>
                 {openFaq === idx ? (
-                  <ChevronUp className="text-gray-400" size={20} />
+                  <ChevronUp className="text-slate-400" size={20} />
                 ) : (
-                  <ChevronDown className="text-gray-400" size={20} />
+                  <ChevronDown className="text-slate-400" size={20} />
                 )}
               </button>
               <div
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${openFaq === idx ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
                   }`}
               >
-                <p className="px-5 pb-5 text-sm text-gray-600 leading-relaxed">
+                <p className="px-5 pb-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                   {faq.a}
                 </p>
               </div>

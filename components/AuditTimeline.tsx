@@ -54,7 +54,7 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ tripId }) => {
     if (loading) {
         return (
             <div className="flex justify-center py-10">
-                <Loader2 className="animate-spin text-teal-600" />
+                <Loader2 className="animate-spin text-teal-600 dark:text-teal-500" />
             </div>
         );
     }
@@ -70,17 +70,17 @@ export const AuditTimeline: React.FC<AuditTimelineProps> = ({ tripId }) => {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-6">Histórico de Atividades</h3>
-            <div className="relative border-l border-gray-200 ml-3 space-y-6">
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow dark:shadow-none border border-transparent dark:border-slate-800 p-6 transition-colors">
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Histórico de Atividades</h3>
+            <div className="relative border-l border-slate-200 dark:border-slate-700 ml-3 space-y-6">
                 {logs.map((log) => (
                     <div key={log.id} className="relative pl-6">
-                        <span className="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-teal-500 ring-4 ring-white" />
+                        <span className="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-teal-500 dark:bg-teal-600 ring-4 ring-white dark:ring-slate-900 transition-colors" />
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900 leading-snug">
+                            <span className="text-sm font-medium text-slate-900 dark:text-slate-200 leading-snug">
                                 {getLogMessage(log)}
                             </span>
-                            <span className="text-xs text-gray-500 mt-1">
+                            <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                 {new Date(log.createdAt).toLocaleString('pt-BR')}
                             </span>
                         </div>

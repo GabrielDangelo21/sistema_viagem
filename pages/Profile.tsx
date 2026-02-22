@@ -275,9 +275,9 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
 
     return (
         <div className="p-4 md:p-8 max-w-2xl mx-auto animate-in fade-in duration-500 pb-20">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Meu Perfil</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-8 transition-colors">Meu Perfil</h1>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mb-8 transition-colors">
                 {/* Avatar Section */}
                 <div className="bg-gradient-to-r from-brand-500 to-brand-700 px-6 py-8 flex flex-col items-center">
                     <button
@@ -319,31 +319,31 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                 <div className="p-6 space-y-5">
                     {/* Name */}
                     <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
-                            <UserIcon size={14} className="text-gray-400" />
+                        <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                            <UserIcon size={14} className="text-slate-400" />
                             Nome
                         </label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-900 dark:text-white transition-all"
                             placeholder="Seu nome"
                         />
                     </div>
 
-                    <hr className="border-gray-100" />
+                    <hr className="border-slate-100 dark:border-slate-800" />
 
                     {/* Timezone */}
                     <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
-                            <Clock size={14} className="text-gray-400" />
+                        <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                            <Clock size={14} className="text-slate-400" />
                             Fuso Horário
                         </label>
                         <select
                             value={timezone}
                             onChange={(e) => setTimezone(e.target.value)}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all appearance-none"
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-900 dark:text-white transition-all appearance-none"
                         >
                             {TIMEZONES.map((tz) => (
                                 <option key={tz.value} value={tz.value}>
@@ -355,8 +355,8 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
 
                     {/* Language */}
                     <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-1.5">
-                            <Languages size={14} className="text-gray-400" />
+                        <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                            <Languages size={14} className="text-slate-400" />
                             Idioma
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -366,8 +366,8 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                                     type="button"
                                     onClick={() => setLocale(loc.value)}
                                     className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${locale === loc.value
-                                        ? 'border-brand-500 bg-brand-50 text-brand-700 ring-2 ring-brand-500/20'
-                                        : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
+                                        ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 ring-2 ring-brand-500/20'
+                                        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
                                         }`}
                                 >
                                     <span className="text-lg">{loc.flag}</span>
@@ -394,23 +394,23 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
             </div>
 
             {/* Configurações de Segurança e Acesso */}
-            <h2 className="text-lg font-bold text-gray-900 mb-4 ml-1 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 ml-1 flex items-center gap-2 transition-colors">
                 <ShieldCheck className="text-brand-500" size={20} /> Segurança e Acesso
             </h2>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8 divide-y divide-gray-100">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mb-8 divide-y divide-slate-100 dark:divide-slate-800 transition-colors">
                 {/* Alterar Email */}
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h3 className="text-base font-bold text-gray-900">Endereço de E-mail</h3>
-                            <p className="text-sm text-gray-500">Seu e-mail atual é {user?.email}</p>
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white">Endereço de E-mail</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Seu e-mail atual é {user?.email}</p>
                         </div>
                         <button
                             onClick={() => {
                                 setIsEditingEmail(!isEditingEmail);
                                 setEmail(user?.email || '');
                             }}
-                            className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors"
+                            className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                         >
                             {isEditingEmail ? 'Cancelar' : 'Alterar'}
                         </button>
@@ -419,10 +419,10 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                     {isEditingEmail && (
                         <div className="flex flex-col sm:flex-row gap-3 pt-2">
                             <div className="relative flex-1">
-                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                                 <input
                                     type="email"
-                                    className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all"
+                                    className="w-full pl-11 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all text-slate-900 dark:text-white"
                                     placeholder="Novo endereço de e-mail"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -437,15 +437,15 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h3 className="text-base font-bold text-gray-900">Mudar Senha</h3>
-                            <p className="text-sm text-gray-500">Altere sua senha de acesso a qualquer momento</p>
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white">Mudar Senha</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Altere sua senha de acesso a qualquer momento</p>
                         </div>
                         <button
                             onClick={() => {
                                 setIsEditingPassword(!isEditingPassword);
                                 setNewPassword('');
                             }}
-                            className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors"
+                            className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                         >
                             {isEditingPassword ? 'Cancelar' : 'Alterar'}
                         </button>
@@ -454,10 +454,10 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                     {isEditingPassword && (
                         <div className="flex flex-col sm:flex-row gap-3 pt-2">
                             <div className="relative flex-1">
-                                <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                                 <input
                                     type="password"
-                                    className="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all"
+                                    className="w-full pl-11 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all text-slate-900 dark:text-white"
                                     placeholder="Digite a nova senha"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
@@ -472,11 +472,11 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                 <div className="p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 Autenticação de 2 Fatores (2FA)
                                 {isEnrolledMfa && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">Ativo</span>}
                             </h3>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                 Proteja sua conta exigindo um código de um app autenticador ao fazer login.
                             </p>
                         </div>
@@ -484,7 +484,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                             <button
                                 onClick={handleUnenrollMfa}
                                 disabled={saving}
-                                className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-100 transition-colors"
+                                className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                             >
                                 Desativar
                             </button>
@@ -493,7 +493,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                                 <button
                                     onClick={handleSetupMfa}
                                     disabled={saving}
-                                    className="bg-brand-50 text-brand-700 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-brand-100 transition-colors"
+                                    className="bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors"
                                 >
                                     Configurar
                                 </button>
@@ -502,22 +502,22 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                     </div>
 
                     {showMfaSetup && !isEnrolledMfa && (
-                        <div className="mt-6 bg-gray-50 rounded-xl p-6 border border-gray-200">
+                        <div className="mt-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700 transition-colors">
                             <div className="flex items-center justify-between mb-4">
-                                <h4 className="font-bold text-gray-800">Complete a Configuração</h4>
-                                <button onClick={() => setShowMfaSetup(false)} className="text-gray-400 hover:text-gray-600">
+                                <h4 className="font-bold text-slate-800 dark:text-slate-200">Complete a Configuração</h4>
+                                <button onClick={() => setShowMfaSetup(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                                     <X size={20} />
                                 </button>
                             </div>
-                            <p className="text-sm text-gray-600 mb-4">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                                 1. Escaneie o QR Code abaixo com seu aplicativo autenticador (ex: Google Authenticator, Authy).
                             </p>
-                            <div className="flex justify-center mb-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center">
+                            <div className="flex justify-center mb-4 bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-center transition-colors">
                                 <div dangerouslySetInnerHTML={{ __html: mfaQrCode.replace(/^data:image\/svg\+xml;utf-8,/, '') }} className="w-48 h-48 [&>svg]:w-full [&>svg]:h-full" />
                             </div>
-                            <p className="text-xs text-gray-500 text-center mb-6">Também pode usar o código: <strong className="font-mono bg-gray-200 px-1 rounded text-gray-800">{mfaSecret}</strong></p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 text-center mb-6">Também pode usar o código: <strong className="font-mono bg-slate-200 dark:bg-slate-700 px-1 rounded text-slate-800 dark:text-slate-200">{mfaSecret}</strong></p>
 
-                            <p className="text-sm text-gray-600 mb-2">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
                                 2. Digite o código de 6 dígitos gerado pelo aplicativo
                             </p>
                             <div className="flex gap-3">
@@ -527,7 +527,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
                                     value={mfaVerifyCode}
                                     onChange={(e) => setMfaVerifyCode(e.target.value.replace(/\D/g, ''))}
                                     placeholder="000000"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg tracking-widest text-center text-lg"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg tracking-widest text-center text-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                                 />
                                 <Button onClick={handleVerifyMfa} loading={saving} disabled={mfaVerifyCode.length !== 6}>Verificar</Button>
                             </div>
@@ -537,31 +537,31 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
             </div>
 
             {/* Zona de Perigo */}
-            <div className="mt-12 bg-red-50/50 rounded-2xl border border-red-100 overflow-hidden">
+            <div className="mt-12 bg-red-50/50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30 overflow-hidden transition-colors">
                 <div className="p-6 flex flex-col items-center text-center gap-4">
                     <div>
-                        <h3 className="text-base font-bold text-red-700 flex items-center justify-center gap-2">
+                        <h3 className="text-base font-bold text-red-700 dark:text-red-400 flex items-center justify-center gap-2">
                             <ShieldAlert size={18} /> Excluir Conta Definitivamente
                         </h3>
-                        <p className="text-sm text-red-600/80 mt-1">Ao excluir sua conta, todas as suas viagens e dados serão apagados para sempre. Esta ação não pode ser desfeita.</p>
+                        <p className="text-sm text-red-600/80 dark:text-red-400/80 mt-1">Ao excluir sua conta, todas as suas viagens e dados serão apagados para sempre. Esta ação não pode ser desfeita.</p>
                     </div>
 
                     {!showDeleteConfirm ? (
                         <button
                             onClick={() => setShowDeleteConfirm(true)}
-                            className="bg-white text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-50 hover:border-red-300 transition-colors whitespace-nowrap shadow-sm"
+                            className="bg-white dark:bg-slate-900 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors whitespace-nowrap shadow-sm"
                         >
                             Excluir Minha Conta
                         </button>
                     ) : (
                         <div className="flex flex-col gap-2 w-full sm:w-auto">
-                            <span className="text-xs font-bold text-red-800 flex items-center gap-1">
+                            <span className="text-xs font-bold text-red-800 dark:text-red-300 flex items-center gap-1">
                                 <AlertTriangle size={12} /> Tem certeza absoluta?
                             </span>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setShowDeleteConfirm(false)}
-                                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors flex-1 text-center"
+                                    className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-1 text-center"
                                 >
                                     Cancelar
                                 </button>
@@ -581,7 +581,7 @@ export const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate, onLogout, 
             <div className="mt-8">
                 <button
                     onClick={onLogout}
-                    className="w-full flex items-center justify-center gap-2 py-4 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl font-bold transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-4 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-xl font-bold transition-colors"
                 >
                     <LogOut size={16} />
                     Sair da conta

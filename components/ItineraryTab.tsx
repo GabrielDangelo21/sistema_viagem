@@ -41,17 +41,17 @@ const SortableActivity = ({ act, onEdit, onDelete }: { act: any, onEdit: any, on
     };
 
     return (
-        <div ref={setNodeRef} style={style} className={`bg-white p-4 rounded-xl border ${isDragging ? 'border-brand-500 shadow-lg relative' : 'border-gray-100 shadow-sm'} flex gap-4 hover:border-brand-200 transition-colors group`}>
+        <div ref={setNodeRef} style={style} className={`bg-white dark:bg-slate-900 p-4 rounded-xl border ${isDragging ? 'border-brand-500 shadow-lg relative' : 'border-slate-100 dark:border-slate-800 shadow-sm'} flex gap-4 hover:border-brand-200 dark:hover:border-brand-700/50 transition-colors group`}>
             {/* Drag Handle */}
-            <div {...attributes} {...listeners} className="flex flex-col items-center justify-center w-8 cursor-grab active:cursor-grabbing text-gray-300 hover:text-brand-500 hover:bg-brand-50 rounded-lg shrink-0 touch-none">
+            <div {...attributes} {...listeners} className="flex flex-col items-center justify-center w-8 cursor-grab active:cursor-grabbing text-slate-300 dark:text-slate-600 hover:text-brand-500 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg shrink-0 touch-none">
                 <MoveUp size={14} className="-mb-1" />
                 <MoveDown size={14} />
             </div>
 
-            <div className="flex flex-col items-center justify-center w-12 text-gray-400 text-xs font-medium border-r border-gray-100 pr-4 shrink-0">
+            <div className="flex flex-col items-center justify-center w-12 text-slate-400 dark:text-slate-500 text-xs font-medium border-r border-slate-100 dark:border-slate-800 pr-4 shrink-0">
                 {act.timeStart ? (
                     <>
-                        <span className="text-gray-700">{act.timeStart}</span>
+                        <span className="text-slate-700 dark:text-slate-300">{act.timeStart}</span>
                         {act.timeEnd && <span className="text-[10px] opacity-60">até {act.timeEnd}</span>}
                     </>
                 ) : (
@@ -59,24 +59,24 @@ const SortableActivity = ({ act, onEdit, onDelete }: { act: any, onEdit: any, on
                 )}
             </div>
             <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-gray-800 truncate">{act.title}</h4>
+                <h4 className="font-semibold text-slate-800 dark:text-white truncate">{act.title}</h4>
                 {act.locationName && (
-                    <p className="text-sm text-gray-500 flex items-center mt-1 truncate">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center mt-1 truncate">
                         <MapPin size={12} className="mr-1 shrink-0" /> {act.locationName}
                     </p>
                 )}
                 {act.cost && (
-                    <p className="text-xs text-green-600 font-medium mt-1 flex items-center">
+                    <p className="text-xs text-green-600 dark:text-green-500 font-medium mt-1 flex items-center">
                         <DollarSign size={10} className="shrink-0" /> {act.currency || 'R$'} {act.cost}
                     </p>
                 )}
             </div>
 
             <div className="flex gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity items-center shrink-0 pr-2">
-                <button onClick={() => onEdit(act)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Editar">
+                <button onClick={() => onEdit(act)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors" title="Editar">
                     <Edit2 size={16} />
                 </button>
-                <button onClick={() => onDelete(act.id)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
+                <button onClick={() => onDelete(act.id)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Excluir">
                     <Trash2 size={16} />
                 </button>
             </div>
@@ -95,7 +95,7 @@ const DayActivityList = ({ dayId, acts, onEdit, onDelete }: any) => {
                         <SortableActivity key={act.id} act={act} onEdit={onEdit} onDelete={onDelete} />
                     ))
                 ) : (
-                    <div className="text-sm text-gray-400 italic bg-gray-50 p-3 rounded-lg border border-dashed border-gray-200 pointer-events-none">
+                    <div className="text-sm text-slate-400 dark:text-slate-500 italic bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-dashed border-slate-200 dark:border-slate-700 pointer-events-none">
                         Arraste uma atividade para cá ou adicione uma nova.
                     </div>
                 )}
@@ -122,9 +122,9 @@ const TimelineView = ({ days, activities, onEdit, onDelete }: any) => {
 
     if (timelineItems.length === 0) {
         return (
-            <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-100">
-                <CalendarIcon size={48} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500">Adicione atividades para visualizar na linha do tempo.</p>
+            <div className="text-center py-20 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <CalendarIcon size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+                <p className="text-slate-500 dark:text-slate-400">Adicione atividades para visualizar na linha do tempo.</p>
             </div>
         );
     }
@@ -143,46 +143,46 @@ const TimelineView = ({ days, activities, onEdit, onDelete }: any) => {
                     <React.Fragment key={act.id}>
                         {isNewDate && (
                             <div className="relative -left-[9px] flex items-center mb-6 mt-8 first:mt-0">
-                                <div className="w-4 h-4 rounded-full bg-brand-500 border-4 border-white shadow-sm ring-1 ring-brand-200" />
-                                <h3 className="ml-4 text-lg font-bold text-gray-900 bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100">
+                                <div className="w-4 h-4 rounded-full bg-brand-500 border-4 border-white dark:border-slate-900 shadow-sm ring-1 ring-brand-200 dark:ring-brand-900/50" />
+                                <h3 className="ml-4 text-lg font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 px-3 py-1 rounded-full shadow-sm border border-slate-100 dark:border-slate-800">
                                     {formatDate(act.parsedDate, 'day-header')}
                                 </h3>
                             </div>
                         )}
                         <div className="relative pl-8 md:pl-12 group">
                             {/* Connector Node */}
-                            <div className="absolute -left-[5px] top-4 w-2 h-2 rounded-full bg-brand-300 group-hover:bg-brand-500 group-hover:scale-150 transition-all" />
+                            <div className="absolute -left-[5px] top-4 w-2 h-2 rounded-full bg-brand-300 dark:bg-brand-600 group-hover:bg-brand-500 group-hover:scale-150 transition-all" />
 
-                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:border-brand-300 transition-colors flex flex-col md:flex-row gap-4">
-                                <div className="text-sm font-bold text-brand-600 w-16 md:border-r border-gray-100 md:pr-4 flex items-center md:justify-center">
+                            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm hover:border-brand-300 dark:hover:border-brand-700/50 transition-colors flex flex-col md:flex-row gap-4">
+                                <div className="text-sm font-bold text-brand-600 dark:text-brand-400 w-16 md:border-r border-slate-100 dark:border-slate-800 md:pr-4 flex items-center md:justify-center">
                                     {act.timeStart || 'S/ Hora'}
                                 </div>
                                 <div className="flex-1">
-                                    <h4 className="font-bold text-gray-800 text-lg">{act.title}</h4>
+                                    <h4 className="font-bold text-slate-800 dark:text-white text-lg">{act.title}</h4>
                                     {act.locationName && (
-                                        <p className="text-sm text-gray-500 flex items-center mt-1">
-                                            <MapPin size={14} className="mr-1 text-gray-400" /> {act.locationName}
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center mt-1">
+                                            <MapPin size={14} className="mr-1 text-slate-400 dark:text-slate-500" /> {act.locationName}
                                         </p>
                                     )}
                                     {act.notes && (
-                                        <p className="text-sm text-gray-600 mt-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                        <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
                                             {act.notes}
                                         </p>
                                     )}
                                 </div>
                                 {act.cost && (
                                     <div className="flex items-start">
-                                        <span className="text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100">
+                                        <span className="text-xs font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded border border-green-100 dark:border-green-900/50">
                                             {act.currency || 'R$'} {act.cost}
                                         </span>
                                     </div>
                                 )}
 
-                                <div className="flex flex-row md:flex-col gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity justify-center mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 md:border-l border-gray-100 md:pl-2 shrink-0">
-                                    <button onClick={() => onEdit(act)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Editar">
+                                <div className="flex flex-row md:flex-col gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity justify-center mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-800 md:pl-2 shrink-0">
+                                    <button onClick={() => onEdit(act)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors" title="Editar">
                                         <Edit2 size={16} />
                                     </button>
-                                    <button onClick={() => onDelete(act.id)} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
+                                    <button onClick={() => onDelete(act.id)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Excluir">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
@@ -213,10 +213,10 @@ const MapView = ({ activities, days }: any) => {
 
     if (mappableActs.length === 0) {
         return (
-            <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-100">
-                <MapIcon size={48} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-lg font-bold text-gray-700">Nenhum local mapeado</h3>
-                <p className="text-gray-500">Adicione atividades com endereços precisos para gerar o mapa.</p>
+            <div className="text-center py-20 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50 transition-colors">
+                <MapIcon size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">Nenhum local mapeado</h3>
+                <p className="text-slate-500 dark:text-slate-400">Adicione atividades com endereços precisos para gerar o mapa.</p>
             </div>
         );
     }
@@ -224,7 +224,7 @@ const MapView = ({ activities, days }: any) => {
     const center: [number, number] = [mappableActs[0].latitude, mappableActs[0].longitude];
 
     return (
-        <div className="h-[500px] rounded-2xl overflow-hidden border border-gray-200 shadow-inner z-0 relative isolate">
+        <div className="h-[500px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-inner z-0 relative isolate">
             <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <TileLayer
                     url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -401,16 +401,16 @@ export function ItineraryTab({ days, activities, stays, handleNewStay, handleNew
             {/* Header controls */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-gray-800">Dia a Dia</h2>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white">Dia a Dia</h2>
 
-                    <div className="flex bg-gray-100 p-1 rounded-lg">
-                        <button onClick={() => setView('list')} className={`p-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-colors ${view === 'list' ? 'bg-white text-brand-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                    <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-lg">
+                        <button onClick={() => setView('list')} className={`p-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-colors ${view === 'list' ? 'bg-white dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
                             <ListIcon size={14} /> Lista
                         </button>
-                        <button onClick={() => setView('timeline')} className={`p-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-colors ${view === 'timeline' ? 'bg-white text-brand-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                        <button onClick={() => setView('timeline')} className={`p-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-colors ${view === 'timeline' ? 'bg-white dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
                             <CalendarIcon size={14} /> Linha do Tempo
                         </button>
-                        <button onClick={() => setView('map')} className={`p-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-colors ${view === 'map' ? 'bg-white text-brand-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                        <button onClick={() => setView('map')} className={`p-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-colors ${view === 'map' ? 'bg-white dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
                             <MapIcon size={14} /> Mapa
                         </button>
                     </div>
@@ -428,25 +428,25 @@ export function ItineraryTab({ days, activities, stays, handleNewStay, handleNew
                         {grouped.map((group, gIdx) => (
                             <div key={group.type === 'stay' ? group.stay.id : `unassigned-${gIdx}`} className="space-y-6">
                                 {group.type === 'stay' && (
-                                    <div className="bg-brand-50 rounded-2xl p-4 md:p-6 border border-brand-100 flex justify-between items-center group">
+                                    <div className="bg-brand-50 dark:bg-brand-900/10 rounded-2xl p-4 md:p-6 border border-brand-100 dark:border-brand-900/30 flex justify-between items-center group transition-colors">
                                         <div>
-                                            <h3 className="text-lg md:text-xl font-bold text-brand-900 flex items-center gap-2">
-                                                <MapPin size={20} className="text-brand-600" />
+                                            <h3 className="text-lg md:text-xl font-bold text-brand-900 dark:text-brand-100 flex items-center gap-2">
+                                                <MapPin size={20} className="text-brand-600 dark:text-brand-400" />
                                                 {group.stay.name}
                                             </h3>
-                                            <p className="text-brand-700/80 text-sm mt-1 font-medium">
+                                            <p className="text-brand-700/80 dark:text-brand-300/80 text-sm mt-1 font-medium">
                                                 {formatDate(group.stay.startDate, 'select')} a {formatDate(group.stay.endDate, 'select')}
                                                 ({group.days.length} diárias planejadas)
                                             </p>
                                         </div>
                                         <div className="flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => handleEditStay(group.stay)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-brand-700 rounded-full transition-colors shadow-sm" title="Editar Estadia"><Edit2 size={16} /></button>
-                                            <button onClick={() => handleDeleteStayClick(group.stay.id)} className="w-8 h-8 flex items-center justify-center bg-white/60 hover:bg-white text-red-600 rounded-full transition-colors shadow-sm" title="Excluir Estadia"><Trash2 size={16} /></button>
+                                            <button onClick={() => handleEditStay(group.stay)} className="w-8 h-8 flex items-center justify-center bg-white/60 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 text-brand-700 dark:text-brand-400 rounded-full transition-colors shadow-sm" title="Editar Estadia"><Edit2 size={16} /></button>
+                                            <button onClick={() => handleDeleteStayClick(group.stay.id)} className="w-8 h-8 flex items-center justify-center bg-white/60 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 text-red-600 dark:text-red-400 rounded-full transition-colors shadow-sm" title="Excluir Estadia"><Trash2 size={16} /></button>
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="relative border-l-2 border-gray-200 ml-3 md:ml-6 space-y-10 pb-4">
+                                <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-3 md:ml-6 space-y-10 pb-4">
                                     {group.days.map((day: any) => {
                                         const dayActs = localActs
                                             .filter((a: any) => a.dayId === day.id)
@@ -458,11 +458,11 @@ export function ItineraryTab({ days, activities, stays, handleNewStay, handleNew
                                         return (
                                             <div key={day.id} className="relative pl-6 md:pl-10">
                                                 {/* Day Marker */}
-                                                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-500 border-4 border-white shadow-sm" />
+                                                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-500 border-4 border-white dark:border-slate-900 shadow-sm" />
 
                                                 <div className="mb-4">
-                                                    <h3 className="text-lg font-bold text-gray-900">{day.title}</h3>
-                                                    <p className="text-sm text-gray-500 capitalize">
+                                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{day.title}</h3>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400 capitalize">
                                                         {formatDate(day.date, 'day-header')}
                                                     </p>
                                                 </div>

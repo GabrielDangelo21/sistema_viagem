@@ -224,24 +224,24 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
   return (
     <div className="p-4 md:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Minhas Viagens</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white transition-colors">Minhas Viagens</h1>
         <Button onClick={handleCreateClick} className="w-full md:w-auto">
           <Plus size={18} className="mr-2" /> Nova Viagem
         </Button>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 gap-6">
+      <div className="flex border-b border-slate-200 dark:border-slate-800 gap-6 transition-colors">
         <button
           onClick={() => setActiveTab('active')}
-          className={`pb-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'active' ? 'border-brand-600 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+          className={`pb-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'active' ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-500' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
         >
           Ativas ({activeTrips.length})
         </button>
         <button
           onClick={() => setActiveTab('archived')}
-          className={`pb-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'archived' ? 'border-brand-600 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+          className={`pb-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'archived' ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-500' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
         >
           Arquivadas ({archivedTrips.length})
@@ -251,15 +251,15 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
       {/* List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading && trips.length === 0 ? (
-          [1, 2, 3].map(i => <div key={i} className="h-48 bg-gray-100 rounded-xl animate-pulse" />)
+          [1, 2, 3].map(i => <div key={i} className="h-48 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse transition-colors" />)
         ) : displayedTrips.length > 0 ? (
           displayedTrips.map(trip => (
             <div
               key={trip.id}
               onClick={() => onNavigate('trip-details', { id: trip.id })}
-              className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer border border-gray-100 group flex flex-col relative"
+              className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer border border-slate-100 dark:border-slate-800 group flex flex-col relative"
             >
-              <div className="h-32 relative overflow-hidden bg-gray-100">
+              <div className="h-32 relative overflow-hidden bg-slate-100 dark:bg-slate-800 transition-colors">
                 {/* Background Layer: Image or Gradient with Zoom Effect */}
                 {trip.coverImageUrl ? (
                   <img
@@ -295,11 +295,11 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
 
               <div className="p-4 flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center text-sm text-gray-500 mb-2">
+                  <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mb-2">
                     <MapPin size={14} className="mr-1" /> {trip.destination}
                   </div>
                 </div>
-                <div className="flex items-center text-xs text-gray-400 font-medium bg-gray-50 p-2 rounded-lg mt-4">
+                <div className="flex items-center text-xs text-slate-400 dark:text-slate-500 font-medium bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg mt-4 transition-colors">
                   <Calendar size={14} className="mr-2" />
                   {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
                 </div>
@@ -307,7 +307,7 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
             </div>
           ))
         ) : (
-          <div className="col-span-full py-12 text-center text-gray-400">
+          <div className="col-span-full py-12 text-center text-slate-400 dark:text-slate-500">
             <Archive className="w-12 h-12 mx-auto mb-2 opacity-20" />
             <p>Nenhuma viagem encontrada nesta categoria.</p>
           </div>
@@ -318,15 +318,15 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Viagem">
         <form onSubmit={handleCreateTrip} className="space-y-4">
           {formError && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2 animate-pulse">
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm p-3 rounded-lg flex items-center gap-2 animate-pulse">
               <XCircle size={16} />
               {formError}
             </div>
           )}
 
           {/* Cover Image Upload */}
-          <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
-            <div className="w-16 h-16 rounded-lg bg-white border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 relative group">
+          <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+            <div className="w-16 h-16 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden flex-shrink-0 relative group">
               {uploadingCover ? (
                 <Loader2 className="text-brand-500 animate-spin" size={24} />
               ) : newTrip.coverImageUrl ? (
@@ -337,19 +337,19 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
                   </button>
                 </>
               ) : (
-                <ImageIcon className="text-gray-400" size={24} />
+                <ImageIcon className="text-slate-400" size={24} />
               )}
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Capa da Viagem (Opcional)</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Capa da Viagem (Opcional)</label>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-50 dark:file:bg-brand-900/20 file:text-brand-700 dark:file:text-brand-400 hover:file:bg-brand-100 dark:hover:file:bg-brand-900/40"
               />
-              <p className="text-[10px] text-gray-400 mt-1 ml-1">Máximo 2MB</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 ml-1">Máximo 2MB</p>
             </div>
 
             {/* AI Image Generation - Removed as per request due to repetitive images */}
@@ -357,10 +357,10 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Viagem</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome da Viagem</label>
             <input
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
               placeholder="Ex: Eurotrip 2025"
               value={newTrip.name}
               onChange={e => setNewTrip({ ...newTrip, name: e.target.value })}
@@ -368,10 +368,10 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Destino Principal</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Destino Principal</label>
             <input
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
               placeholder="Ex: Paris, França"
               value={newTrip.destination}
               onChange={e => setNewTrip({ ...newTrip, destination: e.target.value })}
@@ -380,28 +380,28 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Início</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Início</label>
               <input
                 type="date" required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
                 value={newTrip.startDate}
                 onChange={handleStartDateChange}
                 disabled={loading}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Fim</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fim</label>
               <div>
                 <input
                   type="date" required
                   min={newTrip.startDate}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none ${dateError ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'}`}
+                  className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors ${dateError ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300 dark:border-slate-700'}`}
                   value={newTrip.endDate}
                   onChange={handleEndDateChange}
                   disabled={loading}
                 />
                 {dateError && (
-                  <p className="text-xs text-red-500 mt-1">{dateError}</p>
+                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">{dateError}</p>
                 )}
               </div>
             </div>
@@ -409,7 +409,7 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
 
           {/* Trip Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Viagem</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tipo de Viagem</label>
             <div className="flex flex-wrap gap-2">
               {TRIP_TYPES.map(tt => (
                 <button
@@ -417,8 +417,8 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
                   type="button"
                   onClick={() => setNewTrip({ ...newTrip, type: tt.value })}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${newTrip.type === tt.value
-                    ? 'border-brand-500 bg-brand-50 text-brand-700 ring-2 ring-brand-500/20'
-                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
+                    ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 ring-2 ring-brand-500/20 dark:ring-brand-500/40'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                     }`}
                   disabled={loading}
                 >
@@ -431,14 +431,14 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
 
           {/* Budget */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Orçamento Previsto (Opcional)</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Orçamento Previsto (Opcional)</label>
             <div className="relative">
-              <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
                 type="number"
                 min="0"
                 step="100"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
                 placeholder="Ex: 5000"
                 value={newTrip.budget ?? ''}
                 onChange={e => setNewTrip({ ...newTrip, budget: e.target.value ? Number(e.target.value) : null })}
@@ -449,9 +449,9 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
 
           {/* Currency */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Moeda Padrão</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Moeda Padrão</label>
             <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
               value={newTrip.defaultCurrency}
               onChange={e => setNewTrip({ ...newTrip, defaultCurrency: e.target.value })}
               disabled={loading}
@@ -473,11 +473,11 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
       {/* Upgrade Limit Modal */}
       <Modal isOpen={isLimitModalOpen} onClose={() => setIsLimitModalOpen(false)} title="Limite Atingido">
         <div className="text-center py-6">
-          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600">
+          <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600 dark:text-amber-500">
             <Lock size={32} />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">Desbloqueie viagens ilimitadas</h3>
-          <p className="text-gray-500 text-sm mb-6">No plano gratuito, você pode ter apenas 2 viagens ativas simultaneamente. Faça upgrade para o Pro!</p>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Desbloqueie viagens ilimitadas</h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">No plano gratuito, você pode ter apenas 2 viagens ativas simultaneamente. Faça upgrade para o Pro!</p>
           <Button onClick={() => { setIsLimitModalOpen(false); onNavigate('upgrade'); }} className="w-full">
             Ver Planos Premium
           </Button>
@@ -487,11 +487,11 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
       {/* Delete Confirmation Modal */}
       <Modal isOpen={!!tripToDelete} onClose={() => setTripToDelete(null)} title="Excluir Viagem?">
         <div className="py-2">
-          <div className="flex items-center gap-3 bg-red-50 text-red-700 p-3 rounded-lg mb-4">
-            <AlertTriangle size={24} />
+          <div className="flex items-center gap-3 bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400 p-3 rounded-lg mb-4 border border-red-100 dark:border-red-900/30">
+            <AlertTriangle size={24} className="shrink-0" />
             <p className="text-sm">Essa ação não pode ser desfeita. Todos os dias, atividades e reservas serão apagados.</p>
           </div>
-          <p className="text-gray-600 text-sm mb-6">
+          <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">
             Tem certeza que deseja excluir esta viagem?
           </p>
           <div className="flex justify-end gap-2">

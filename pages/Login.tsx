@@ -152,12 +152,12 @@ export function Login({ mfaChallengeMode = false, onSuccess }: LoginProps = {}) 
                 </div>
 
                 {/* Card */}
-                <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl shadow-brand-900/20 p-6 sm:p-8">
+                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-2xl shadow-brand-900/20 p-6 sm:p-8 transition-colors">
                     <div className="text-center mb-6">
-                        <h2 className="text-xl font-bold text-gray-900">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white transition-colors">
                             {isSignUp ? 'Criar Conta' : 'Bem-vindo de volta'}
                         </h2>
-                        <p className="text-gray-500 text-sm mt-1">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 transition-colors">
                             {mfaChallengeMode ? 'Digite o código do seu aplicativo autenticador' : isSignUp ? 'Crie sua conta em segundos' : 'Faça login para continuar'}
                         </p>
                     </div>
@@ -172,14 +172,14 @@ export function Login({ mfaChallengeMode = false, onSuccess }: LoginProps = {}) 
                     {mfaChallengeMode ? (
                         <form onSubmit={handleMfaVerify} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Código de Autenticação (6 dígitos)</label>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">Código de Autenticação (6 dígitos)</label>
                                 <div className="relative">
-                                    <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                    <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                                     <input
                                         type="text"
                                         required
                                         maxLength={6}
-                                        className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all tracking-widest text-center text-lg shadow-sm"
+                                        className="w-full pl-11 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all tracking-widest text-center text-lg shadow-sm text-slate-900 dark:text-white"
                                         placeholder="000000"
                                         value={mfaCode}
                                         onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
@@ -207,13 +207,13 @@ export function Login({ mfaChallengeMode = false, onSuccess }: LoginProps = {}) 
                             <form onSubmit={handleAuth} className="space-y-4">
                                 {isSignUp && (
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome</label>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">Nome</label>
                                         <div className="relative">
-                                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                                             <input
                                                 type="text"
                                                 required
-                                                className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all"
+                                                className="w-full pl-11 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all text-slate-900 dark:text-white"
                                                 placeholder="Seu Nome"
                                                 value={name}
                                                 onChange={(e) => setName(e.target.value)}
@@ -223,13 +223,13 @@ export function Login({ mfaChallengeMode = false, onSuccess }: LoginProps = {}) 
                                 )}
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">E-mail</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 transition-colors">E-mail</label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                                         <input
                                             type="email"
                                             required
-                                            className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all"
+                                            className="w-full pl-11 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all text-slate-900 dark:text-white"
                                             placeholder="seu@email.com"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
@@ -239,23 +239,23 @@ export function Login({ mfaChallengeMode = false, onSuccess }: LoginProps = {}) 
 
                                 <div>
                                     <div className="flex justify-between items-center mb-1.5">
-                                        <label className="block text-sm font-medium text-gray-700">Senha</label>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors">Senha</label>
                                         {!isSignUp && (
                                             <button
                                                 type="button"
                                                 onClick={handleForgotPassword}
-                                                className="text-xs text-brand-600 hover:underline font-medium"
+                                                className="text-xs text-brand-600 hover:text-brand-500 hover:underline font-medium"
                                             >
                                                 Esqueceu a senha?
                                             </button>
                                         )}
                                     </div>
                                     <div className="relative">
-                                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                                         <input
                                             type="password"
                                             required
-                                            className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all"
+                                            className="w-full pl-11 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 outline-none transition-all text-slate-900 dark:text-white"
                                             placeholder="••••••••"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
@@ -276,10 +276,10 @@ export function Login({ mfaChallengeMode = false, onSuccess }: LoginProps = {}) 
                             {/* Divider */}
                             <div className="relative my-6">
                                 <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-200" />
+                                    <div className="w-full border-t border-slate-200 dark:border-slate-800 transition-colors" />
                                 </div>
                                 <div className="relative flex justify-center text-xs">
-                                    <span className="px-3 bg-white/95 text-gray-400">ou continue com</span>
+                                    <span className="px-3 bg-white/95 dark:bg-slate-900/95 text-slate-400 transition-colors">ou continue com</span>
                                 </div>
                             </div>
 
@@ -288,7 +288,7 @@ export function Login({ mfaChallengeMode = false, onSuccess }: LoginProps = {}) 
                                 type="button"
                                 onClick={handleGoogleLogin}
                                 disabled={loading}
-                                className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-all disabled:opacity-50 active:scale-[0.98] shadow-sm"
+                                className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300 font-medium transition-all disabled:opacity-50 active:scale-[0.98] shadow-sm"
                             >
                                 <svg width="20" height="20" viewBox="0 0 24 24">
                                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -299,25 +299,25 @@ export function Login({ mfaChallengeMode = false, onSuccess }: LoginProps = {}) 
                                 Continuar com Google
                             </button>
 
-                            <div className="mt-6 text-center text-sm text-gray-600">
+                            <div className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400 transition-colors">
                                 <p className="mb-4">
                                     {isSignUp ? 'Já tem uma conta?' : 'Não tem conta?'}
                                     <button
                                         onClick={() => setIsSignUp(!isSignUp)}
-                                        className="text-brand-600 font-semibold ml-1 hover:underline"
+                                        className="text-brand-600 dark:text-brand-500 font-semibold ml-1 hover:underline transition-colors"
                                     >
                                         {isSignUp ? 'Fazer Login' : 'Criar agora'}
                                     </button>
                                 </p>
 
                                 {!isSignUp && (
-                                    <div className="border-t border-gray-100 pt-4">
-                                        <p className="mb-2 text-gray-400 text-xs">Ou se preferir:</p>
+                                    <div className="border-t border-slate-100 dark:border-slate-800 pt-4 transition-colors">
+                                        <p className="mb-2 text-slate-400 text-xs transition-colors">Ou se preferir:</p>
                                         <button
                                             type="button"
                                             onClick={handleMagicLink}
                                             disabled={loading || !email}
-                                            className="text-gray-500 hover:text-brand-600 text-xs underline disabled:opacity-50"
+                                            className="text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 text-xs underline disabled:opacity-50 transition-colors"
                                         >
                                             Enviar Link Mágico por E-mail
                                         </button>
