@@ -211,7 +211,7 @@ model Expense {
   currency            String   @default("BRL")
   paidByParticipantId String
   date                DateTime @default(now())
-  categoryId          String?
+  category            String?
   createdAt           DateTime @default(now())
 
   trip     Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)

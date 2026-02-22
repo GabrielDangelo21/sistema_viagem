@@ -966,7 +966,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                 {/* FINANCES TAB */}
                 {activeTab === 'finances' && (
                     <div className="animate-in slide-in-from-bottom-2 duration-300">
-                        <FinanceModule tripId={trip.id} tripDefaultCurrency={trip.defaultCurrency} />
+                        <FinanceModule tripId={trip.id} tripDefaultCurrency={trip.defaultCurrency} tripBudget={trip.budget} />
                     </div>
                 )}
 

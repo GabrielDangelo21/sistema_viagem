@@ -133,6 +133,7 @@ export interface Expense {
   currency: string;
   paidByParticipantId: string;
   date: string; // ISO_DATETIME
+  category?: string | null;
   createdAt: string; // ISO_DATETIME
 
   // Relations (optional/included)

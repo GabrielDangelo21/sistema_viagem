@@ -19,7 +19,8 @@
     "pg-connection-string": "^2.11.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-leaflet": "^5.0.0"
+    "react-leaflet": "^5.0.0",
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

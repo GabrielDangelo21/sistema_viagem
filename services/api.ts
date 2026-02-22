@@ -333,7 +333,8 @@ export const api = {
     currency?: string,
     paidByParticipantId: string,
     participantIdsToSplit: string[],
-    date?: string
+    date?: string,
+    category?: string
   }): Promise<Expense> => {
     const headers = {
       ...(await getAuthHeaders()),
@@ -363,7 +364,8 @@ export const api = {
     currency?: string,
     paidByParticipantId: string,
     participantIdsToSplit: string[],
-    date?: string
+    date?: string,
+    category?: string
   }): Promise<Expense> => {
     const headers = {
       ...(await getAuthHeaders()),

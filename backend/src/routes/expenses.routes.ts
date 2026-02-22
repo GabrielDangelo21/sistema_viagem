@@ -53,12 +53,13 @@ export async function expensesRoutes(app: FastifyInstance) {
                 currency: z.enum(['BRL', 'USD', 'EUR', 'GBP']).default('BRL'),
                 paidByParticipantId: z.string().uuid(),
                 date: z.string().datetime().optional(), // ISO String
+                category: z.string().optional(),
                 participantIdsToSplit: z.array(z.string().uuid()).min(1),
             }),
         },
     }, async (request) => {
         const { tripId } = request.params;
-        const { title, amount, currency, paidByParticipantId, date, participantIdsToSplit } = request.body;
+        const { title, amount, currency, paidByParticipantId, date, category, participantIdsToSplit } = request.body;
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
@@ -104,6 +105,7 @@ export async function expensesRoutes(app: FastifyInstance) {
                     amount,
                     currency,
                     paidByParticipantId,
+                    category: category || null,
                     date: date ? new Date(date) : new Date(),
                 }
             });
@@ -295,12 +297,13 @@ export async function expensesRoutes(app: FastifyInstance) {
                 currency: z.enum(['BRL', 'USD', 'EUR', 'GBP']).default('BRL'),
                 paidByParticipantId: z.string().uuid(),
                 date: z.string().datetime().optional(),
+                category: z.string().optional(),
                 participantIdsToSplit: z.array(z.string().uuid()).min(1),
             }),
         },
     }, async (request) => {
         const { tripId, expenseId } = request.params;
-        const { title, amount, currency, paidByParticipantId, date, participantIdsToSplit } = request.body;
+        const { title, amount, currency, paidByParticipantId, date, category, participantIdsToSplit } = request.body;
         const { activeWorkspace } = request;
 
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
@@ -344,6 +347,7 @@ export async function expensesRoutes(app: FastifyInstance) {
                     amount,
                     currency,
                     paidByParticipantId,
+                    category: category || null,
                     date: date ? new Date(date) : undefined,
                 }
             });

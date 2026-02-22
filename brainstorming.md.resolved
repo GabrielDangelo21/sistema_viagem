@@ -15,7 +15,7 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 | 🏨 Reservas | 🟢 Implementado | ~75% |
 | 📂 Documentos | 🔴 Não Implementado | ~5% |
 | ⏰ Lembretes | 🔴 Não Implementado | 0% |
-| 💰 Controle Financeiro | 🟢 Implementado | ~70% |
+| 💰 Controle Financeiro | 🟢 Implementado | 100% |
 | 👥 Viagens Compartilhadas | 🟡 Parcial | ~40% |
 | ✅ Checklist de Viagem | 🟢 Implementado | ~90% |
 | 🤖 Recursos de IA | 🔴 Não Implementado | ~5% |
@@ -58,7 +58,7 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 
 ---
 
-## 🗺️ Módulo 2 — Roteiro Diário — 🟡 50%
+## 🗺️ Módulo 2 — Roteiro Diário — 🟢 100%
 
 | Feature | Status | Notas |
 |:---|:---|:---|
@@ -110,16 +110,16 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 
 ---
 
-## 💰 Módulo 6 — Controle Financeiro — 🟢 70%
+## 💰 Módulo 6 — Controle Financeiro — 🟢 100%
 
 | Feature | Status | Notas |
 |:---|:---|:---|
 | Registro de despesas | ✅ | CRUD completo |
 | Divisão de gastos | ✅ | [ExpenseShare](file:///g:/Programacao/sistema_viagem/types.ts#126-135) implementado |
 | Balanço entre participantes | ✅ | [getBalances](file:///g:/Programacao/sistema_viagem/services/api.ts#262-270) com sugestões de pagamento |
-| Categorias | 🟡 | `categoryId` no schema, mas sem tabela de categorias |
-| Orçamento planejado vs real | ❌ | Não há campo de orçamento na viagem |
-| Gráficos automáticos | ❌ | |
+| Categorias | ✅ | Enum fixo com 9 categorias (Alimentação, Hospedagem, Transporte, etc.) |
+| Orçamento planejado vs real | ✅ | Card com gauge circular + barras de progresso por categoria |
+| Gráficos automáticos | ✅ | Donut (categorias), Gauge (orçamento), Barras (participantes) via Recharts |
 
 ---
 
