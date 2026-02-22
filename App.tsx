@@ -16,29 +16,20 @@ export default function App() {
     currentRoute: 'trips',
   });
   const [user, setUser] = useState<CurrentUser | null>(null);
-  const [session, setSession] = useState<any>(null);
+  // undefined = onAuthStateChange not yet fired; null = fired, no session
+  const [session, setSession] = useState<any>(undefined);
   const [loading, setLoading] = useState(true);
   const [requiresMfa, setRequiresMfa] = useState(false);
 
+  // Effect 1: Subscribe to auth state changes.
+  // Callback is SYNCHRONOUS — no async calls here to avoid Supabase lock deadlocks.
   useEffect(() => {
     let mounted = true;
 
-    // Remove getSession() to avoid locking collisions with onAuthStateChange.
-    // onAuthStateChange fires 'INITIAL_SESSION' instantly, handling the first load safely.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       if (!mounted) return;
-
-      setAccessToken(session?.access_token ?? null);
-      setSession(session);
-      if (session) {
-        await checkMfa();
-      } else {
-        setUser(null);
-        setRequiresMfa(false);
-        setLoading(false);
-      }
+      setAccessToken(currentSession?.access_token ?? null);
+      setSession(currentSession ?? null);
     });
 
     return () => {
@@ -47,33 +38,61 @@ export default function App() {
     };
   }, []);
 
-  const checkMfa = async () => {
-    try {
-      const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (error) throw error;
+  // Effect 2: React to session changes OUTSIDE the onAuthStateChange callback.
+  // This avoids deadlocks from calling getSession() or MFA APIs inside the callback.
+  useEffect(() => {
+    if (session === undefined) return; // Wait for first onAuthStateChange to fire
 
-      if (data?.nextLevel === 'aal2' && data?.currentLevel === 'aal1') {
-        setRequiresMfa(true);
-        setLoading(false);
-      } else {
-        setRequiresMfa(false);
-        fetchProfile();
-      }
-    } catch (err) {
-      console.error('Error checking MFA:', err);
-      supabase.auth.signOut();
-    }
-  };
-
-  const fetchProfile = async () => {
-    try {
-      const u = await api.getMe();
-      setUser(u);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      // If error (e.g. network), we might wanna show specific error or logout
-    } finally {
+    if (!session) {
+      setUser(null);
+      setRequiresMfa(false);
       setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const initWithSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (cancelled) return;
+        if (error) throw error;
+
+        if (data?.nextLevel === 'aal2' && data?.currentLevel === 'aal1') {
+          setRequiresMfa(true);
+          setLoading(false);
+        } else {
+          setRequiresMfa(false);
+          try {
+            const u = await api.getMe();
+            if (!cancelled) setUser(u);
+          } catch (err) {
+            console.error('Error fetching profile:', err);
+          } finally {
+            if (!cancelled) setLoading(false);
+          }
+        }
+      } catch (err) {
+        console.error('Error during auth init:', err);
+        if (!cancelled) {
+          await supabase.auth.signOut();
+          setLoading(false);
+        }
+      }
+    };
+
+    initWithSession();
+    return () => { cancelled = true; };
+  }, [session]);
+
+  const checkMfa = async () => {
+    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error) throw error;
+
+    if (data?.nextLevel === 'aal2' && data?.currentLevel === 'aal1') {
+      setRequiresMfa(true);
+    } else {
+      setRequiresMfa(false);
     }
   };
 
