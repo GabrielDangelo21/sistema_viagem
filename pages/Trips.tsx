@@ -259,13 +259,14 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, user }) => {
               onClick={() => onNavigate('trip-details', { id: trip.id })}
               className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer border border-slate-100 dark:border-slate-800 group flex flex-col relative"
             >
-              <div className="h-32 relative overflow-hidden bg-slate-100 dark:bg-slate-800 transition-colors">
+              <div className="h-40 relative overflow-hidden bg-slate-100 dark:bg-slate-800 transition-colors">
                 {/* Background Layer: Image or Gradient with Zoom Effect */}
                 {trip.coverImageUrl ? (
                   <img
                     src={trip.coverImageUrl}
                     alt={trip.name}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                    style={{ objectPosition: `center ${trip.coverImageOffset ?? 50}%` }}
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-r from-brand-500 to-brand-700 transition-transform duration-500 ease-out group-hover:scale-105" />
