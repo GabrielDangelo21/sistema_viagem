@@ -721,16 +721,16 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute top-3 right-3 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                         <button
                                             onClick={() => {
                                                 setPreviewOffset(trip.coverImageOffset ?? 50);
                                                 setIsRepositioningCover(true);
                                             }}
-                                            className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-full backdrop-blur-md transition-colors shadow-lg"
+                                            className="bg-black/60 hover:bg-black/80 text-white w-9 h-9 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg"
                                             title="Reposicionar Imagem"
                                         >
-                                            <MoveHorizontal size={16} />
+                                            <MoveHorizontal size={18} />
                                         </button>
                                     </div>
                                 )}
