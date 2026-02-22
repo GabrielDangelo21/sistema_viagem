@@ -312,8 +312,6 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     };
 
     // --- GOOGLE MAPS AUTOCOMPLETE HANDLERS ---
-    const autocompleteService = useRef<any>(null);
-    const placesService = useRef<any>(null);
 
     useEffect(() => {
         if ((window as any).google) {
@@ -338,7 +336,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         };
 
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=pt-BR&callback=initMap`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=pt-BR&loading=async&callback=initMap`;
         script.async = true;
         script.defer = true;
         script.onerror = () => console.error('Falha ao carregar script do Google Maps');
@@ -355,28 +353,21 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         const google = (window as any).google;
         if (!google) return;
 
-        if (!autocompleteService.current) {
-            autocompleteService.current = new google.maps.places.AutocompleteService();
-        }
-
         setIsSearchingLocation(true);
         try {
-            autocompleteService.current.getPlacePredictions({ input: query }, (predictions: any, status: any) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-                    setLocationSuggestions(predictions);
-                    setShowLocationDropdown(true);
-                } else {
-                    console.error('Google Maps Prediction Status:', status);
-                    // Avisamos o usuário se a chave der REQUEST_DENIED ou erro de billing
-                    if (status !== google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-                        toast({ message: `Erro no Autocomplete do Google: ${status}. Verifique sua Chave API.`, type: 'error' });
-                    }
-                    setLocationSuggestions([]);
-                }
-                setIsSearchingLocation(false);
-            });
+            const { suggestions } = await google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input: query });
+            const predictions = (suggestions ?? [])
+                .filter((s: any) => s.placePrediction)
+                .map((s: any) => ({
+                    description: s.placePrediction.text.text,
+                    place_id: s.placePrediction.placeId,
+                }));
+            setLocationSuggestions(predictions);
+            setShowLocationDropdown(predictions.length > 0);
         } catch (err) {
             console.error('Error fetching Google suggestions', err);
+            setLocationSuggestions([]);
+        } finally {
             setIsSearchingLocation(false);
         }
     };
@@ -402,7 +393,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         }, 500);
     };
 
-    const handleLocationSelect = (prediction: any) => {
+    const handleLocationSelect = async (prediction: any) => {
         const displayName = prediction.description;
         setLocationQuery(displayName);
         setShowLocationDropdown(false);
@@ -410,23 +401,23 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         const google = (window as any).google;
         if (!google) return;
 
-        const dummy = document.createElement('div');
-        if (!placesService.current) {
-            placesService.current = new google.maps.places.PlacesService(dummy);
-        }
-
-        placesService.current.getDetails({ placeId: prediction.place_id }, (place: any, status: any) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+        try {
+            const place = new google.maps.places.Place({ id: prediction.place_id });
+            await place.fetchFields({ fields: ['location'] });
+            if (place.location) {
                 setNewActivity(prev => ({
                     ...prev,
                     locationName: displayName,
-                    latitude: place.geometry.location.lat(),
-                    longitude: place.geometry.location.lng()
+                    latitude: place.location.lat(),
+                    longitude: place.location.lng(),
                 }));
             } else {
                 setNewActivity(prev => ({ ...prev, locationName: displayName }));
             }
-        });
+        } catch (err) {
+            console.error('Error fetching place details', err);
+            setNewActivity(prev => ({ ...prev, locationName: displayName }));
+        }
     };
 
     const handleSaveActivity = async (e: React.FormEvent) => {
