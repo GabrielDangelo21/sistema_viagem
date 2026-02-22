@@ -21,20 +21,15 @@ export default function App() {
   const [requiresMfa, setRequiresMfa] = useState(false);
 
   useEffect(() => {
-    // 1. Check active session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        await checkMfa();
-      } else {
-        setLoading(false);
-      }
-    });
+    let mounted = true;
 
-    // 2. Listen for changes (login/logout)
+    // Remove getSession() to avoid locking collisions with onAuthStateChange.
+    // onAuthStateChange fires 'INITIAL_SESSION' instantly, handling the first load safely.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+
       setSession(session);
       if (session) {
         await checkMfa();
@@ -45,7 +40,10 @@ export default function App() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const checkMfa = async () => {
