@@ -664,89 +664,112 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
 
     return (
         <div className="pb-20 md:pb-8">
-            {/* Header */}
-            <div className="relative h-56 md:h-64 bg-gray-900 overflow-hidden group">
-                {trip.coverImageUrl ? (
-                    <>
-                        <img
-                            src={trip.coverImageUrl}
-                            alt={trip.name}
-                            className="absolute inset-0 w-full h-full object-cover opacity-80"
-                            style={{ objectPosition: `center ${isRepositioningCover ? previewOffset : (trip.coverImageOffset ?? 50)}%` }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-
-                        {/* Repositioning Overlay */}
-                        {isRepositioningCover ? (
-                            <div className="absolute inset-0 z-20 bg-black/50 flex flex-col items-center justify-center backdrop-blur-sm p-4">
-                                <span className="mb-4 text-white font-medium bg-black/50 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm shadow-xl">
-                                    <MoveVertical size={16} /> Arraste para reposicionar
-                                </span>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={previewOffset}
-                                    onChange={(e) => setPreviewOffset(Number(e.target.value))}
-                                    className="w-64 max-w-[80%] accent-brand-500 mb-6"
-                                    style={{ transform: 'rotate(270deg)' }}
-                                />
-                                <div className="flex gap-3 mt-8">
-                                    <button onClick={handleCancelCoverOffset} className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl font-medium transition-colors backdrop-blur-md">
-                                        Cancelar
-                                    </button>
-                                    <button onClick={handleSaveCoverOffset} className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-500/30">
-                                        Salvar Posição
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button
-                                    onClick={() => {
-                                        setPreviewOffset(trip.coverImageOffset ?? 50);
-                                        setIsRepositioningCover(true);
-                                    }}
-                                    className="bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full backdrop-blur-sm transition-colors flex items-center gap-2 px-4 shadow-lg"
-                                >
-                                    <MoveVertical size={16} />
-                                    <span className="text-sm font-medium hidden md:block">Reposicionar</span>
-                                </button>
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900" />
-                )}
-
-                <div className="absolute top-3 left-3 z-10 safe-area-top">
-                    <button onClick={() => {
-                        if (activeTab === 'overview') {
-                            onNavigate('trips');
-                        } else {
-                            setActiveTab('overview');
-                        }
-                    }} className="bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full backdrop-blur-sm transition-colors">
+            {/* Content Wrapper for Alignment */}
+            <div className="max-w-4xl mx-auto w-full pt-4 md:pt-8 px-4 md:px-8">
+                {/* Back Button */}
+                <div className="mb-4">
+                    <button
+                        onClick={() => {
+                            if (activeTab === 'overview') {
+                                onNavigate('trips');
+                            } else {
+                                setActiveTab('overview');
+                            }
+                        }}
+                        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium w-fit"
+                    >
                         <ArrowLeft size={20} />
+                        <span>Voltar</span>
                     </button>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8 text-white">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-                        <div className="space-y-1.5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <Badge status={trip.status} />
-                                {(() => { const tt = TRIP_TYPES.find(t => t.value === trip.type); return tt ? <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${tt.color}`}>{tt.emoji} {tt.label}</span> : null; })()}
-                                <span className="text-xs opacity-90 flex items-center gap-1 font-medium bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm">
-                                    <Calendar size={12} />
-                                    {formatDate(trip.startDate, 'range-start')} - {formatDate(trip.endDate, 'range-end')}
-                                </span>
+
+                {/* Split Header Card */}
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row relative group mb-2 md:mb-6">
+
+                    {/* Left: Image Box */}
+                    <div className="w-full md:w-2/5 lg:w-1/3 relative h-64 md:h-auto min-h-[200px] md:min-h-[250px] bg-gray-100 flex-shrink-0">
+                        {trip.coverImageUrl ? (
+                            <>
+                                <img
+                                    src={trip.coverImageUrl}
+                                    alt={trip.name}
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    style={{ objectPosition: `center ${isRepositioningCover ? previewOffset : (trip.coverImageOffset ?? 50)}%` }}
+                                />
+
+                                {/* Repositioning Overlay */}
+                                {isRepositioningCover ? (
+                                    <div className="absolute inset-0 z-20 bg-black/60 flex flex-col items-center justify-center backdrop-blur-sm p-4">
+                                        <span className="mb-4 text-white font-medium bg-black/50 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm shadow-xl text-center">
+                                            <MoveVertical size={16} /> Arraste
+                                        </span>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            value={previewOffset}
+                                            onChange={(e) => setPreviewOffset(Number(e.target.value))}
+                                            className="w-48 accent-brand-500 mb-6"
+                                            style={{ transform: 'rotate(270deg)' }}
+                                        />
+                                        <div className="flex flex-col gap-2 mt-4 w-full px-4">
+                                            <button onClick={handleSaveCoverOffset} className="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-500/30 text-sm">
+                                                Salvar Posição
+                                            </button>
+                                            <button onClick={handleCancelCoverOffset} className="w-full py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl font-medium transition-colors backdrop-blur-md text-sm">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => {
+                                                setPreviewOffset(trip.coverImageOffset ?? 50);
+                                                setIsRepositioningCover(true);
+                                            }}
+                                            className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-full backdrop-blur-md transition-colors shadow-lg"
+                                            title="Reposicionar Imagem"
+                                        >
+                                            <MoveVertical size={16} />
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                <ImageIcon className="text-gray-400 opacity-50" size={48} />
                             </div>
-                            <h1 className="text-2xl md:text-3xl font-bold leading-tight">{trip.name}</h1>
-                            <div className="flex items-center gap-1.5 text-gray-200">
-                                <MapPin size={14} />
-                                <span className="text-sm font-medium">{trip.destination}</span>
-                                <button onClick={handleEditTripClick} className="ml-1 p-1.5 hover:bg-white/20 rounded-full transition-colors inline-flex items-center justify-center" title="Editar Viagem">
-                                    <Edit2 size={14} />
+                        )}
+                    </div>
+
+                    {/* Right: Info Box */}
+                    <div className="p-6 md:p-8 flex-1 flex flex-col justify-center">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <Badge status={trip.status} />
+                                    {(() => { const tt = TRIP_TYPES.find(t => t.value === trip.type); return tt ? <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${tt.color} border border-transparent`}>{tt.emoji} {tt.label}</span> : null; })()}
+                                    <span className="text-xs text-gray-600 font-medium bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                        <Calendar size={12} className="text-gray-500" />
+                                        {formatDate(trip.startDate, 'range-start')} - {formatDate(trip.endDate, 'range-end')}
+                                    </span>
+                                </div>
+                                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-gray-900">{trip.name}</h1>
+                                <div className="flex items-center gap-1.5 text-gray-500">
+                                    <MapPin size={16} className="text-gray-400" />
+                                    <span className="text-sm font-medium">{trip.destination}</span>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center pt-2 md:pt-0">
+                                <button
+                                    onClick={handleEditTripClick}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl font-medium transition-colors text-sm shadow-sm"
+                                >
+                                    <Edit2 size={16} />
+                                    <span>Editar Viagem</span>
                                 </button>
                             </div>
                         </div>
