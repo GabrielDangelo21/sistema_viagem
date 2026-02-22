@@ -144,8 +144,8 @@ export function Login({ mfaChallengeMode = false, onSuccess }: LoginProps = {}) 
             <div className="w-full max-w-md">
                 {/* Logo / Brand */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4">
-                        <MapPin className="w-8 h-8 text-white" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-4 overflow-hidden">
+                        <img src="/logo.png" alt="TripNest Logo" className="w-12 h-12 object-contain" />
                     </div>
                     <h1 className="text-3xl font-bold text-white tracking-tight">TripNest</h1>
                     <p className="text-white/70 text-sm mt-1">Planeje viagens inesquecíveis</p>

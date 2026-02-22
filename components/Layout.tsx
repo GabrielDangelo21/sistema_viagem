@@ -33,7 +33,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentRoute, onNaviga
       <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0 transition-colors duration-200">
         <div className="p-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-brand-600 dark:text-brand-500 tracking-tight flex items-center gap-2">
-            <Map className="w-8 h-8" />
+            <img src="/logo.png" alt="TripNest Logo" className="w-8 h-8 object-contain" />
             TripNest
           </h1>
           <button
