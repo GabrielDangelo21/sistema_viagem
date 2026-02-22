@@ -20,7 +20,6 @@ import { ParticipantsList } from '../components/ParticipantsList';
 import { FinanceModule } from '../components/FinanceModule';
 import { StayModal } from '../components/StayModal';
 import { ItineraryTab } from '../components/ItineraryTab';
-import { AuditTimeline } from '../components/AuditTimeline';
 
 interface TripDetailsProps {
     tripId?: string;
@@ -31,7 +30,7 @@ interface TripDetailsProps {
 export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, onNavigate }) => {
     const [data, setData] = useState<{ trip: TripUI, days: ItineraryDay[], activities: Activity[], reservations: Reservation[], stays: Stay[] } | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'reservations' | 'participants' | 'finances' | 'checklist' | 'history'>(initialTab || 'overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'reservations' | 'participants' | 'finances' | 'checklist'>(initialTab && initialTab !== 'history' ? initialTab as any : 'overview');
     const { toast } = useToast();
 
     // State for overview
@@ -87,10 +86,9 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         if (tripId) fetchData(tripId);
     }, [tripId]);
 
-    // Sync active tab if initialTab changes (for scenarios where component is reused)
     useEffect(() => {
         if (initialTab) {
-            setActiveTab(initialTab);
+            setActiveTab(initialTab !== 'history' ? initialTab as any : 'overview');
         }
     }, [initialTab]);
 
@@ -705,7 +703,6 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                 { icon: Users, label: 'Participantes', sub: overviewData ? `${overviewData.participants.length} pessoas` : 'Carregando...', action: () => setActiveTab('participants'), color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100' },
                                 { icon: Wallet, label: 'Finanças', sub: 'Gastos e Saldos', action: () => setActiveTab('finances'), color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-100' },
                                 { icon: List, label: 'Checklists', sub: checklistLoaded ? `${checklistItems.filter(i => i.isChecked).length}/${checklistItems.length}` : 'Carregando...', action: () => setActiveTab('checklist'), color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
-                                { icon: ActivityIcon, label: 'Histórico', sub: 'Ações e Eventos', action: () => setActiveTab('history'), color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
                             ].map((item, idx) => (
                                 <button
                                     key={idx}
@@ -1069,13 +1066,6 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                 <Plus size={18} />
                             </Button>
                         </form>
-                    </div>
-                )}
-
-                {/* HISTORY TAB */}
-                {activeTab === 'history' && (
-                    <div className="animate-in slide-in-from-bottom-2 duration-300">
-                        <AuditTimeline tripId={trip.id} />
                     </div>
                 )}
             </div>

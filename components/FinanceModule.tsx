@@ -3,6 +3,8 @@ import { api } from '../services/api';
 import { Expense, Participant } from '../types';
 import { EXPENSE_CATEGORIES, getCategoryByValue } from '../lib/expenseCategories';
 import { FinanceCharts } from './FinanceCharts';
+import { AuditTimeline } from './AuditTimeline';
+import { Receipt, Scale, PieChart, Activity } from 'lucide-react';
 
 interface FinanceModuleProps {
     tripId: string;
@@ -11,7 +13,7 @@ interface FinanceModuleProps {
 }
 
 export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId, tripDefaultCurrency, tripBudget }) => {
-    const [activeTab, setActiveTab] = useState<'expenses' | 'balances' | 'summary'>('expenses');
+    const [activeTab, setActiveTab] = useState<'expenses' | 'balances' | 'summary' | 'history'>('expenses');
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [balances, setBalances] = useState<Record<string, number>>({});
     const [suggestedPayments, setSuggestedPayments] = useState<any[]>([]);
@@ -138,9 +140,10 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId, tripDefaul
     };
 
     const tabs = [
-        { key: 'expenses' as const, label: 'Gastos' },
-        { key: 'balances' as const, label: 'Saldos & Acertos' },
-        { key: 'summary' as const, label: '📊 Resumo' },
+        { key: 'expenses' as const, label: 'Gastos', icon: Receipt },
+        { key: 'balances' as const, label: 'Saldos & Acertos', icon: Scale },
+        { key: 'summary' as const, label: 'Resumo', icon: PieChart },
+        { key: 'history' as const, label: 'Histórico', icon: Activity },
     ];
 
     return (
@@ -150,8 +153,9 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId, tripDefaul
                     <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
-                        className={`px-4 py-2 mr-2 font-medium whitespace-nowrap ${activeTab === tab.key ? 'border-b-2 border-teal-600 text-teal-700' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`px-4 py-2 mr-2 font-medium whitespace-nowrap flex items-center gap-2 ${activeTab === tab.key ? 'border-b-2 border-teal-600 text-teal-700' : 'text-gray-500 hover:text-gray-700'}`}
                     >
+                        <tab.icon size={18} />
                         {tab.label}
                     </button>
                 ))}
@@ -343,6 +347,12 @@ export const FinanceModule: React.FC<FinanceModuleProps> = ({ tripId, tripDefaul
                     tripBudget={tripBudget}
                     tripCurrency={tripDefaultCurrency || 'BRL'}
                 />
+            )}
+
+            {activeTab === 'history' && (
+                <div className="animate-in slide-in-from-bottom-2 duration-300">
+                    <AuditTimeline tripId={tripId} />
+                </div>
             )}
         </div>
     );

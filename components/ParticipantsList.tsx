@@ -11,7 +11,6 @@ export const ParticipantsList: React.FC<ParticipantsListProps> = ({ tripId }) =>
     const [newName, setNewName] = useState('');
     const [newEmail, setNewEmail] = useState('');
     const [loading, setLoading] = useState(false);
-    const [inviteRole, setInviteRole] = useState<'editor' | 'viewer'>('editor');
     const [inviteLink, setInviteLink] = useState('');
     const [generatingInvite, setGeneratingInvite] = useState(false);
 
@@ -58,7 +57,7 @@ export const ParticipantsList: React.FC<ParticipantsListProps> = ({ tripId }) =>
         setGeneratingInvite(true);
         setInviteLink('');
         try {
-            const result = await api.createInvite(tripId, inviteRole);
+            const result = await api.createInvite(tripId, 'editor');
             const link = `${window.location.origin}/?invite=${result.token}`;
             setInviteLink(link);
         } catch (error) {
@@ -124,16 +123,8 @@ export const ParticipantsList: React.FC<ParticipantsListProps> = ({ tripId }) =>
 
             <div className="mt-8 border-t pt-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Convidar via Link Mágico</h3>
-                <p className="text-sm text-gray-600 mb-4">Gere um link temporário (7 dias) para outras pessoas entrarem na viagem.</p>
-                <div className="flex flex-col sm:flex-row gap-2 items-center">
-                    <select
-                        value={inviteRole}
-                        onChange={e => setInviteRole(e.target.value as 'editor' | 'viewer')}
-                        className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
-                    >
-                        <option value="editor">Editor (pode alterar reservas, gastos...)</option>
-                        <option value="viewer">Leitor (apenas visualização)</option>
-                    </select>
+                <p className="text-sm text-gray-600 mb-4">Gere um link temporário (7 dias) para outras pessoas entrarem na viagem. Todos convidados por link serão adicionados como Editores.</p>
+                <div className="flex gap-2 items-center">
                     <button
                         onClick={handleGenerateInvite}
                         disabled={generatingInvite}
