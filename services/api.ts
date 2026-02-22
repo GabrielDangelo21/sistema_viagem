@@ -10,13 +10,21 @@ import { supabase } from '../lib/supabase';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
 
 // --- AUTH HELPER ---
+// Token cached from onAuthStateChange to avoid deadlock:
+// calling getSession() inside onAuthStateChange acquires the same lock → hangs forever.
+let _cachedAccessToken: string | null = null;
+
+export function setAccessToken(token: string | null) {
+  _cachedAccessToken = token;
+}
+
 async function getAuthHeaders() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) {
+  const token = _cachedAccessToken ?? (await supabase.auth.getSession()).data.session?.access_token;
+  if (!token) {
     throw new Error('Usuário não autenticado');
   }
   return {
-    'Authorization': `Bearer ${session.access_token}`
+    'Authorization': `Bearer ${token}`
   };
 }
 

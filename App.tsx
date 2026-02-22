@@ -6,7 +6,7 @@ import { Upgrade } from './pages/Upgrade';
 import { Login } from './pages/Login';
 import { Profile } from './pages/Profile';
 import { AppState, RouteName, CurrentUser } from './types';
-import { api } from './services/api';
+import { api, setAccessToken } from './services/api';
 import { supabase } from './lib/supabase';
 import { Loader2 } from 'lucide-react';
 import { ToastProvider } from './components/UI';
@@ -27,9 +27,10 @@ export default function App() {
     // onAuthStateChange fires 'INITIAL_SESSION' instantly, handling the first load safely.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return;
 
+      setAccessToken(session?.access_token ?? null);
       setSession(session);
       if (session) {
         await checkMfa();
