@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:tripnestviagem.netlify.app)",
+      "WebFetch(domain:sistema-viagem.onrender.com)"
     ]
   }
 }
