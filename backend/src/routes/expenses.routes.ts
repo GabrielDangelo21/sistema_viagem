@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { ApiError } from '../lib/errors.js';
+import { requireRole } from '../lib/permissions.js';
+import { logAction } from '../lib/auditLog.js';
 
 export async function expensesRoutes(app: FastifyInstance) {
     const zApp = app.withTypeProvider<ZodTypeProvider>();
@@ -69,9 +71,9 @@ export async function expensesRoutes(app: FastifyInstance) {
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        const isOwner = trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
-        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+        if (trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
+        }
 
         // Verify payer exists in trip
         const payer = await app.prisma.participant.findFirst({
@@ -125,6 +127,16 @@ export async function expensesRoutes(app: FastifyInstance) {
             }));
 
             await tx.expenseShare.createMany({ data: sharesData });
+
+            await logAction(app.prisma, {
+                tripId,
+                userId: request.dbUser?.id,
+                userName: request.dbUser?.name,
+                action: 'expense_created',
+                entity: 'expense',
+                entityId: expense.id,
+                details: `Gasto '${expense.title}' adicionado`
+            });
 
             return expense;
         });
@@ -268,9 +280,9 @@ export async function expensesRoutes(app: FastifyInstance) {
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        const isOwner = trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
-        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+        if (trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
+        }
 
         const expense = await app.prisma.expense.findUnique({
             where: { id: expenseId, tripId }
@@ -279,6 +291,16 @@ export async function expensesRoutes(app: FastifyInstance) {
 
         await app.prisma.expense.delete({
             where: { id: expenseId }
+        });
+
+        await logAction(app.prisma, {
+            tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'expense_deleted',
+            entity: 'expense',
+            entityId: expenseId,
+            details: `Gasto '${expense.title}' excluído`
         });
 
         return { message: 'Despesa removida' };
@@ -314,9 +336,9 @@ export async function expensesRoutes(app: FastifyInstance) {
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        const isOwner = trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
-        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+        if (trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
+        }
 
         const existingExpense = await app.prisma.expense.findUnique({
             where: { id: expenseId, tripId }
@@ -363,6 +385,16 @@ export async function expensesRoutes(app: FastifyInstance) {
             }));
 
             await tx.expenseShare.createMany({ data: sharesData });
+
+            await logAction(app.prisma, {
+                tripId,
+                userId: request.dbUser?.id,
+                userName: request.dbUser?.name,
+                action: 'expense_updated',
+                entity: 'expense',
+                entityId: expenseId,
+                details: `Gasto '${expense.title}' editado`
+            });
 
             return expense;
         });

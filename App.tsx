@@ -5,6 +5,7 @@ import { TripDetails } from './pages/TripDetails';
 import { Upgrade } from './pages/Upgrade';
 import { Login } from './pages/Login';
 import { Profile } from './pages/Profile';
+import { AcceptInvite } from './pages/AcceptInvite';
 import { AppState, RouteName, CurrentUser } from './types';
 import { api, setAccessToken } from './services/api';
 import { supabase } from './lib/supabase';
@@ -12,8 +13,17 @@ import { Loader2 } from 'lucide-react';
 import { ToastProvider } from './components/UI';
 
 export default function App() {
-  const [appState, setAppState] = useState<AppState>({
-    currentRoute: 'trips',
+  const [appState, setAppState] = useState<AppState>(() => {
+    // Check for invite token in URL on initial load
+    const params = new URLSearchParams(window.location.search);
+    const inviteToken = params.get('invite');
+    if (inviteToken) {
+      return {
+        currentRoute: 'invite',
+        params: { token: inviteToken }
+      };
+    }
+    return { currentRoute: 'trips' };
   });
   const [user, setUser] = useState<CurrentUser | null>(null);
   // undefined = onAuthStateChange not yet fired; null = fired, no session
@@ -97,6 +107,10 @@ export default function App() {
   };
 
   const navigate = (route: RouteName, params?: any) => {
+    // Clean URL if navigating away from invite
+    if (route !== 'invite' && window.location.search.includes('invite=')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
     setAppState({ currentRoute: route, params });
     window.scrollTo(0, 0);
   };
@@ -138,6 +152,13 @@ export default function App() {
             user={user}
             onUserUpdate={(updated) => setUser(updated)}
             onLogout={handleLogout}
+            onNavigate={navigate}
+          />
+        );
+      case 'invite':
+        return (
+          <AcceptInvite
+            token={appState.params?.token}
             onNavigate={navigate}
           />
         );

@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { ApiError } from '../lib/errors.js';
+import { requireRole } from '../lib/permissions.js';
+import { logAction } from '../lib/auditLog.js';
 
 export async function staysRoutes(app: FastifyInstance) {
     const zApp = app.withTypeProvider<ZodTypeProvider>();
@@ -67,11 +69,10 @@ export async function staysRoutes(app: FastifyInstance) {
 
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        const isOwner = trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        if (!isOwner && !isParticipant) {
-            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
         }
 
         const stay = await app.prisma.stay.create({
@@ -110,11 +111,10 @@ export async function staysRoutes(app: FastifyInstance) {
 
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        const isOwner = trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        if (!isOwner && !isParticipant) {
-            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
         }
 
         const existingStay = await app.prisma.stay.findUnique({
@@ -151,11 +151,10 @@ export async function staysRoutes(app: FastifyInstance) {
 
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        const isOwner = trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        if (!isOwner && !isParticipant) {
-            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
         }
 
         const existingStay = await app.prisma.stay.findUnique({
@@ -166,6 +165,16 @@ export async function staysRoutes(app: FastifyInstance) {
 
         await app.prisma.stay.delete({
             where: { id: stayId }
+        });
+
+        await logAction(app.prisma, {
+            tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'stay_deleted',
+            entity: 'stay',
+            entityId: stayId,
+            details: `Estadia '${existingStay.name}' excluída`
         });
 
         return { success: true };

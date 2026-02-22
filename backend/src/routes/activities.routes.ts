@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { ApiError } from '../lib/errors.js';
+import { requireRole } from '../lib/permissions.js';
+import { logAction } from '../lib/auditLog.js';
 
 export async function activitiesRoutes(app: FastifyInstance) {
     const zApp = app.withTypeProvider<ZodTypeProvider>();
@@ -40,11 +42,8 @@ export async function activitiesRoutes(app: FastifyInstance) {
 
         if (!day) throw new ApiError('NOT_FOUND', 'Dia não encontrado', 404);
 
-        const isOwner = day.trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && day.trip.participants.some(p => p.userId === request.dbUser?.id);
-
-        if (!isOwner && !isParticipant) {
-            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (day.trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, day.tripId, request.dbUser?.id, 'editor');
         }
 
         let finalLat = data.latitude;
@@ -81,6 +80,16 @@ export async function activitiesRoutes(app: FastifyInstance) {
             }
         });
 
+        await logAction(app.prisma, {
+            tripId: day.tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'activity_created',
+            entity: 'activity',
+            entityId: activity.id,
+            details: `Atividade '${activity.title}' criada`
+        });
+
         return activity;
     });
 
@@ -107,11 +116,8 @@ export async function activitiesRoutes(app: FastifyInstance) {
 
         if (!day) throw new ApiError('NOT_FOUND', 'Dia não encontrado', 404);
 
-        const isOwner = day.trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && day.trip.participants.some(p => p.userId === request.dbUser?.id);
-
-        if (!isOwner && !isParticipant) {
-            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (day.trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, day.tripId, request.dbUser?.id, 'editor');
         }
 
         const updates = activityIds.map((id, index) => {
@@ -122,6 +128,15 @@ export async function activitiesRoutes(app: FastifyInstance) {
         });
 
         await app.prisma.$transaction(updates);
+
+        await logAction(app.prisma, {
+            tripId: day.tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'activity_reordered',
+            entity: 'activity',
+            details: 'Atividades reordenadas'
+        });
 
         return reply.status(204).send();
     });
@@ -161,11 +176,8 @@ export async function activitiesRoutes(app: FastifyInstance) {
 
         if (!activity) throw new ApiError('NOT_FOUND', 'Atividade não encontrada', 404);
 
-        const isOwner = activity.day.trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && activity.day.trip.participants.some(p => p.userId === request.dbUser?.id);
-
-        if (!isOwner && !isParticipant) {
-            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (activity.day.trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, activity.day.tripId, request.dbUser?.id, 'editor');
         }
 
         let finalLat = data.latitude !== undefined ? data.latitude : activity.latitude;
@@ -200,6 +212,16 @@ export async function activitiesRoutes(app: FastifyInstance) {
             }
         });
 
+        await logAction(app.prisma, {
+            tripId: activity.day.tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'activity_updated',
+            entity: 'activity',
+            entityId: id,
+            details: `Atividade '${updatedActivity.title}' atualizada`
+        });
+
         return updatedActivity;
     });
 
@@ -222,15 +244,22 @@ export async function activitiesRoutes(app: FastifyInstance) {
 
         if (!activity) throw new ApiError('NOT_FOUND', 'Atividade não encontrada', 404);
 
-        const isOwner = activity.day.trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && activity.day.trip.participants.some(p => p.userId === request.dbUser?.id);
-
-        if (!isOwner && !isParticipant) {
-            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (activity.day.trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, activity.day.tripId, request.dbUser?.id, 'editor');
         }
 
         await app.prisma.activity.delete({
             where: { id }
+        });
+
+        await logAction(app.prisma, {
+            tripId: activity.day.tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'activity_deleted',
+            entity: 'activity',
+            entityId: id,
+            details: `Atividade '${activity.title}' excluída`
         });
 
         return reply.status(204).send();

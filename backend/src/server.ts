@@ -13,6 +13,7 @@ import { participantsRoutes } from './routes/participants.routes.js';
 import { checklistRoutes } from './routes/checklist.routes.js'; // Import
 import { expensesRoutes } from './routes/expenses.routes.js';
 import { staysRoutes } from './routes/stays.routes.js';
+import { invitesRoutes } from './routes/invites.routes.js';
 
 
 export const app = Fastify({
@@ -42,6 +43,7 @@ app.register(uploadsRoutes, { prefix: '/api/uploads' });
 app.register(participantsRoutes, { prefix: '/api/trips/:tripId/participants' });
 app.register(expensesRoutes, { prefix: '/api/trips/:tripId/expenses' });
 app.register(staysRoutes, { prefix: '/api/trips/:tripId/stays' });
+app.register(invitesRoutes, { prefix: '/api' });
 
 
 if (import.meta.url === `file://${process.argv[1]}`) {

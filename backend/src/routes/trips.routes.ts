@@ -4,6 +4,8 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { ApiError } from '../lib/errors.js';
 import { deriveTripStatus, isValidIsoDate } from '../lib/date.js';
+import { requireRole } from '../lib/permissions.js';
+import { logAction } from '../lib/auditLog.js';
 
 export async function tripsRoutes(app: FastifyInstance) {
     const zApp = app.withTypeProvider<ZodTypeProvider>();
@@ -198,6 +200,12 @@ export async function tripsRoutes(app: FastifyInstance) {
             throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
         }
 
+        // Only editor+ can update trip metadata (or workspace owner implicitly via UI logic, but here we enforce via role)
+        // If they are strictly a participant, check role:
+        if (!isOwnerWorkspace) {
+            await requireRole(app, id, request.dbUser?.id, 'editor');
+        }
+
         const { startDate, endDate, name, destination, coverImageUrl, type, budget, defaultCurrency } = request.body;
 
         // Validation: endDate >= startDate (considering updates)
@@ -247,6 +255,16 @@ export async function tripsRoutes(app: FastifyInstance) {
             await app.prisma.itineraryDay.createMany({ data: days });
         }
 
+        await logAction(app.prisma, {
+            tripId: id,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'trip_updated',
+            entity: 'trip',
+            entityId: id,
+            details: 'Configurações da viagem atualizadas'
+        });
+
         return {
             ...updatedTrip,
             status: deriveTripStatus(updatedTrip.startDate, updatedTrip.endDate)
@@ -275,8 +293,12 @@ export async function tripsRoutes(app: FastifyInstance) {
         }
 
         if (trip.workspaceId !== activeWorkspace.id) {
-            console.warn(`[DeleteTrip] Trip ${id} does not belong to workspace ${activeWorkspace.id}`);
-            throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+            // Also allow trip owner to delete even if not workspace owner (for flexibility)
+            const participant = await requireRole(app, id, request.dbUser?.id, 'owner').catch(() => null);
+            if (!participant) {
+                console.warn(`[DeleteTrip] Trip ${id} does not belong to workspace ${activeWorkspace.id}`);
+                throw new ApiError('FORBIDDEN', 'Apenas o organizador pode excluir a viagem', 403);
+            }
         }
 
         try {

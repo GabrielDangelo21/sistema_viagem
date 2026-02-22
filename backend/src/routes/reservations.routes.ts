@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { ApiError } from '../lib/errors.js';
 import { isValidIsoDateTime } from '../lib/date.js';
 import { ReservationStatus, ReservationType } from '@prisma/client';
+import { requireRole } from '../lib/permissions.js';
+import { logAction } from '../lib/auditLog.js';
 
 export async function reservationsRoutes(app: FastifyInstance) {
     const zApp = app.withTypeProvider<ZodTypeProvider>();
@@ -46,9 +48,9 @@ export async function reservationsRoutes(app: FastifyInstance) {
 
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        const isOwner = trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
-        if (!isOwner && !isParticipant) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
+        }
 
         // Validation: end >= start
         if (endDateTime && startDateTime > endDateTime) {
@@ -62,6 +64,16 @@ export async function reservationsRoutes(app: FastifyInstance) {
                 endDateTime,
                 ...data
             }
+        });
+
+        await logAction(app.prisma, {
+            tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'reservation_created',
+            entity: 'reservation',
+            entityId: reservation.id,
+            details: `Reserva '${reservation.title}' (${reservation.type}) adicionada`
         });
 
         return reservation;
@@ -96,9 +108,9 @@ export async function reservationsRoutes(app: FastifyInstance) {
 
         if (!reservation) throw new ApiError('NOT_FOUND', 'Reserva não encontrada', 404);
 
-        const isOwner = reservation.trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && reservation.trip.participants.some(p => p.userId === request.dbUser?.id);
-        if (!isOwner && !isParticipant) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (reservation.trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, reservation.tripId, request.dbUser?.id, 'editor');
+        }
 
         const { startDateTime, endDateTime, ...data } = request.body;
 
@@ -119,6 +131,16 @@ export async function reservationsRoutes(app: FastifyInstance) {
             }
         });
 
+        await logAction(app.prisma, {
+            tripId: reservation.tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'reservation_updated',
+            entity: 'reservation',
+            entityId: id,
+            details: `Reserva '${updated.title}' (${updated.type}) editada`
+        });
+
         return updated;
     });
 
@@ -137,11 +159,21 @@ export async function reservationsRoutes(app: FastifyInstance) {
 
         if (!reservation) throw new ApiError('NOT_FOUND', 'Reserva não encontrada', 404);
 
-        const isOwner = reservation.trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && reservation.trip.participants.some(p => p.userId === request.dbUser?.id);
-        if (!isOwner && !isParticipant) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (reservation.trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, reservation.tripId, request.dbUser?.id, 'editor');
+        }
 
         await app.prisma.reservation.delete({ where: { id } });
+
+        await logAction(app.prisma, {
+            tripId: reservation.tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'reservation_deleted',
+            entity: 'reservation',
+            entityId: id,
+            details: `Reserva '${reservation.title}' excluída`
+        });
 
         return { message: 'Reserva deletada' };
     });

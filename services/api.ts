@@ -1,7 +1,7 @@
 import {
   User, Workspace, Trip, ItineraryDay, Activity, Reservation,
   TripStatus, TripUI, CurrentUser, ReservationType, ReservationStatus,
-  Participant, Expense, ExpenseShare, ChecklistItem, Stay
+  Participant, Expense, ExpenseShare, ChecklistItem, Stay, AuditLog
 } from '../types';
 
 import { supabase } from '../lib/supabase';
@@ -429,5 +429,35 @@ export const api = {
     });
     await handleResponse(res);
     return { success: true };
+  },
+
+  // --- INVITES ---
+  createInvite: async (tripId: string, role: string): Promise<{ token: string, role: string, expiresAt: string }> => {
+    const headers = {
+      ...(await getAuthHeaders()),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_URL}/trips/${tripId}/invites`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ role })
+    });
+    return handleResponse(res);
+  },
+
+  acceptInvite: async (token: string): Promise<{ message: string, tripId: string }> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/invites/${token}/accept`, {
+      method: 'POST',
+      headers
+    });
+    return handleResponse(res);
+  },
+
+  // --- AUDIT LOGS ---
+  getAuditLog: async (tripId: string): Promise<AuditLog[]> => {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/trips/${tripId}/audit`, { headers });
+    return handleResponse(res);
   }
 };

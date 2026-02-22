@@ -4,6 +4,8 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { ApiError } from '../lib/errors.js';
 import { PrismaClient } from '@prisma/client';
+import { requireRole } from '../lib/permissions.js';
+import { logAction } from '../lib/auditLog.js';
 
 export async function checklistRoutes(app: FastifyInstance) {
     const zApp = app.withTypeProvider<ZodTypeProvider>();
@@ -65,12 +67,10 @@ export async function checklistRoutes(app: FastifyInstance) {
 
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada');
 
-        // Access Check (Write): Same as Read for now
-        const isOwnerWorkspace = trip.workspaceId === activeWorkspace?.id;
-        const isParticipant = dbUser && trip.participants.some(p => p.userId === dbUser.id);
+        if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada');
 
-        if (!isOwnerWorkspace && !isParticipant) {
-            throw new ApiError('FORBIDDEN', 'Sem permissão para modificar esta viagem');
+        if (trip.workspaceId !== activeWorkspace?.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
         }
 
         const item = await app.prisma.checklistItem.create({
@@ -79,6 +79,16 @@ export async function checklistRoutes(app: FastifyInstance) {
                 text,
                 isChecked: false
             }
+        });
+
+        await logAction(app.prisma, {
+            tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'checklist_created',
+            entity: 'checklist',
+            entityId: item.id,
+            details: `Item de checklist '${item.text}' adicionado`
         });
 
         return item;
@@ -106,27 +116,25 @@ export async function checklistRoutes(app: FastifyInstance) {
 
         if (!item) throw new ApiError('NOT_FOUND', 'Item não encontrado');
 
-        // Access Check via Trip
-        // Optimization: checking workspaceId directly on trip relation
+        if (!item) throw new ApiError('NOT_FOUND', 'Item não encontrado');
+
         if (item.trip.workspaceId !== activeWorkspace?.id) {
-            // Check participant access via extra query if needed, strictly enforcing workspace ownership for now implies only owner/workspace members can edit?
-            // Actually, participants should be able to check items.
-            // Let's rely on workspace context for now as per other routes pattern, but ideally we check participants too.
-            // For MVP speed: if trip is in active workspace context or user is participant.
-            // Re-fetching participants to be safe:
-            const trip = await app.prisma.trip.findUnique({
-                where: { id: item.tripId },
-                include: { participants: true }
-            });
-            const isParticipant = request.dbUser && trip?.participants.some(p => p.userId === request.dbUser!.id);
-            if (!isParticipant) { // Since workspaceId didn't match
-                throw new ApiError('FORBIDDEN', 'Sem permissão');
-            }
+            await requireRole(app, item.tripId, request.dbUser?.id, 'editor');
         }
 
         const updated = await app.prisma.checklistItem.update({
             where: { id },
             data: { isChecked }
+        });
+
+        await logAction(app.prisma, {
+            tripId: item.tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'checklist_updated',
+            entity: 'checklist',
+            entityId: id,
+            details: `Item de checklist '${item.text}' marcado como ${isChecked ? 'concluído' : 'pendente'}`
         });
 
         return updated;
@@ -150,20 +158,24 @@ export async function checklistRoutes(app: FastifyInstance) {
 
         if (!item) throw new ApiError('NOT_FOUND', 'Item não encontrado');
 
-        // Similar access check logic
+        if (!item) throw new ApiError('NOT_FOUND', 'Item não encontrado');
+
         if (item.trip.workspaceId !== activeWorkspace?.id) {
-            const trip = await app.prisma.trip.findUnique({
-                where: { id: item.tripId },
-                include: { participants: true }
-            });
-            const isParticipant = request.dbUser && trip?.participants.some(p => p.userId === request.dbUser!.id);
-            if (!isParticipant) {
-                throw new ApiError('FORBIDDEN', 'Sem permissão');
-            }
+            await requireRole(app, item.tripId, request.dbUser?.id, 'editor');
         }
 
         await app.prisma.checklistItem.delete({
             where: { id }
+        });
+
+        await logAction(app.prisma, {
+            tripId: item.tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'checklist_deleted',
+            entity: 'checklist',
+            entityId: id,
+            details: `Item de checklist '${item.text}' removido`
         });
 
         return { message: 'Item removido' };

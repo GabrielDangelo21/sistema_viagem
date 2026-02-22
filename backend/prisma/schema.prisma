@@ -57,6 +57,8 @@ model Trip {
   participants  Participant[]
   expenses      Expense[]
   checklistItems ChecklistItem[]
+  invites       TripInvite[]
+  auditLogs     AuditLog[]
   
   @@index([workspaceId])
   @@map("trips")
@@ -192,6 +194,7 @@ model Participant {
   name      String
   email     String?
   isOwner   Boolean @default(false)
+  role      String  @default("editor") // "owner" | "editor" | "viewer"
   
   trip      Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
   user      User?   @relation(fields: [userId], references: [id])
@@ -234,4 +237,33 @@ model ExpenseShare {
 
   @@index([expenseId])
   @@index([participantId])
+}
+
+model TripInvite {
+  id        String   @id @default(uuid())
+  tripId    String
+  token     String   @unique @default(uuid())
+  role      String   @default("editor")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tripId    String
+  userId    String?
+  userName  String?
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
 }

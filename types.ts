@@ -115,6 +115,24 @@ export interface Participant {
   name: string;
   email?: string;
   isOwner: boolean;
+  role: 'owner' | 'editor' | 'viewer';
+}
+
+export interface AuditLog {
+  id: string;
+  tripId: string;
+  userId?: string;
+  userName?: string;
+  action: string;
+  entity: string;
+  entityId?: string;
+  details?: string;
+  metadata?: any;
+  createdAt: string;
+  user?: {
+    name: string;
+    email?: string;
+  };
 }
 
 export interface ChecklistItem {
@@ -163,7 +181,7 @@ export interface CurrentUser extends User {
   plan: 'free' | 'pro' | 'family';
 }
 
-export type RouteName = 'dashboard' | 'trips' | 'trip-details' | 'upgrade' | 'profile';
+export type RouteName = 'dashboard' | 'trips' | 'trip-details' | 'upgrade' | 'profile' | 'invite';
 
 export interface AppState {
   currentRoute: RouteName;

@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { ApiError } from '../lib/errors.js';
+import { requireRole } from '../lib/permissions.js';
+import { logAction } from '../lib/auditLog.js';
 
 export async function participantsRoutes(app: FastifyInstance) {
     const zApp = app.withTypeProvider<ZodTypeProvider>();
@@ -59,9 +61,9 @@ export async function participantsRoutes(app: FastifyInstance) {
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        const isOwner = trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
-        if (!isOwner && !isParticipant) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
+        if (trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
+        }
 
         // Check if exists by email
         if (email) {
@@ -88,6 +90,16 @@ export async function participantsRoutes(app: FastifyInstance) {
             }
         });
 
+        await logAction(app.prisma, {
+            tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'participant_added',
+            entity: 'participant',
+            entityId: participant.id,
+            details: `Participante '${participant.name}' adicionado manualmente`
+        });
+
         return participant;
     });
 
@@ -110,9 +122,9 @@ export async function participantsRoutes(app: FastifyInstance) {
         });
         if (!trip) throw new ApiError('NOT_FOUND', 'Viagem não encontrada', 404);
 
-        const isOwner = trip.workspaceId === activeWorkspace.id;
-        const isParticipant = request.dbUser && trip.participants.some(p => p.userId === request.dbUser?.id);
-        if (!isOwner && !isParticipant) throw new ApiError('FORBIDDEN', 'Acesso negado', 403);
+        if (trip.workspaceId !== activeWorkspace.id) {
+            await requireRole(app, tripId, request.dbUser?.id, 'editor');
+        }
 
         const participant = await app.prisma.participant.findUnique({ where: { id: participantId } });
         if (!participant) throw new ApiError('NOT_FOUND', 'Participante não encontrado', 404);
@@ -130,6 +142,16 @@ export async function participantsRoutes(app: FastifyInstance) {
         if (hasExpenses > 0) throw new ApiError('VALIDATION_ERROR', 'Não é possível remover participante que cadastrou despesas');
 
         await app.prisma.participant.delete({ where: { id: participantId } });
+
+        await logAction(app.prisma, {
+            tripId,
+            userId: request.dbUser?.id,
+            userName: request.dbUser?.name,
+            action: 'participant_removed',
+            entity: 'participant',
+            entityId: participantId,
+            details: `Participante '${participant.name}' removido`
+        });
 
         return { message: 'Participante removido' };
     });
