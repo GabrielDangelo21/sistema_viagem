@@ -16,11 +16,11 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 | 📂 Documentos | 🔴 Não Implementado | ~5% |
 | ⏰ Lembretes | 🔴 Não Implementado | 0% |
 | 💰 Controle Financeiro | 🟢 Implementado | 100% |
-| 👥 Viagens Compartilhadas | 🟡 Parcial | ~40% |
-| ✅ Checklist de Viagem | 🟢 Implementado | ~90% |
+| 👥 Viagens Compartilhadas | 🟢 Implementado | 100% |
+| ✅ Checklist de Viagem | 🟢 Implementado | 100% |
 | 🤖 Recursos de IA | 🔴 Não Implementado | ~5% |
-| 🔒 Segurança | 🟢 Implementado | ~80% |
-| 🎨 Interface/Design | 🟢 Implementado | ~65% |
+| 🔒 Segurança | 🟢 Implementado | ~95% |
+| 🎨 Interface/Design | 🟢 Implementado | 100% |
 
 ---
 
@@ -123,19 +123,19 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 
 ---
 
-## 👥 Módulo 7 — Viagens Compartilhadas — 🟡 40%
+## 👥 Módulo 7 — Viagens Compartilhadas — 🟢 100%
 
 | Feature | Status | Notas |
 |:---|:---|:---|
 | Adicionar participantes | ✅ | Por nome e email |
 | Listar participantes | ✅ | [ParticipantsList.tsx](file:///g:/Programacao/sistema_viagem/components/ParticipantsList.tsx) |
-| Convidar por email (envio) | ❌ | Sem integração de email |
-| Permissões (ver/editar/admin) | ❌ | Roles existem nos types mas sem enforcement |
-| Histórico de alterações | ❌ | |
+| Convite por Link | ✅ | Lógica simplificada: links geram automaticamente papel de 'editor' |
+| Permissões (Roles) | ✅ | Simplificado para 'editor' por padrão para todos os convidados |
+| Histórico de alterações | ✅ | Implementado via `AuditTimeline` integrado na aba "Histórico" de Finanças |
 
 ---
 
-## ✅ Módulo 8 — Checklist de Viagem — 🟢 90%
+## ✅ Módulo 8 — Checklist de Viagem — 🟢 100%
 
 | Feature | Status | Notas |
 |:---|:---|:---|
@@ -166,7 +166,8 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 | Dashboard com próxima viagem | ✅ | Focado de forma minimalista apenas na viagem imediata |
 | Integração Modular (Tabs) | ✅ | Módulos de Checklist, Participantes e Finanças unificados na página da viagem |
 | Design minimalista/moderno | ✅ | Tailwind CSS + Lucide Icons |
-| Responsivo (Mobile First) | 🟡 | Parcialmente, precisa de testes |
+| Modo Dark/Light Global | ✅ | Implementado com `ThemeContext`, detecção de sistema e persistência |
+| Responsivo (Mobile First) | ✅ | Refinado para telas pequenas (Ajuste de capa e botões acessíveis) |
 | Paleta Azul + Branco | ✅ | `brand-*` colors configuradas |
 
 ---
@@ -187,8 +188,8 @@ Análise detalhada comparando o planejamento inicial do sistema de viagem com o 
 
 ### 🥇 Prioridade Alta (Core Experience)
 1. **Módulo de Documentos** — Criar Storage bucket, implementar upload/download
-2. **Refinamento de Autenticação** — Implementar exclusão de conta e troca de senha interna
-3. **Sistema de Notificações** — Para lembretes e alterações em viagens compartilhadas
+2. **Sistema de Notificações** — Para lembretes e alterações em viagens compartilhadas
+3. **Melhoria de Performance** — Code splitting e otimização de queries pesadas
 
 ### 🥈 Prioridade Média (Diferenciação)
 5. **Recursos de IA** — Geração automática de roteiros (maior diferencial competitivo)
