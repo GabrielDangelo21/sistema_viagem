@@ -98,7 +98,7 @@ export const api = {
     return handleResponse(res);
   },
 
-  updateTrip: async (tripId: string, patch: Partial<Pick<Trip, 'name' | 'destination' | 'startDate' | 'endDate' | 'coverImageUrl' | 'type' | 'budget' | 'defaultCurrency'>>): Promise<TripUI> => {
+  updateTrip: async (tripId: string, patch: Partial<Pick<Trip, 'name' | 'destination' | 'startDate' | 'endDate' | 'coverImageUrl' | 'coverImageOffset' | 'type' | 'budget' | 'defaultCurrency'>>): Promise<TripUI> => {
     const headers = {
       ...(await getAuthHeaders()),
       'Content-Type': 'application/json'

@@ -45,6 +45,7 @@ export async function tripsRoutes(app: FastifyInstance) {
                 startDate: z.string().refine(isValidIsoDate, 'Data inválida (ISO Date)'),
                 endDate: z.string().refine(isValidIsoDate, 'Data inválida (ISO Date)'),
                 coverImageUrl: z.string().optional(),
+                coverImageOffset: z.number().min(0).max(100).optional(),
                 type: z.string().default('lazer'),
                 budget: z.number().min(0).optional().nullable(),
                 defaultCurrency: z.enum(['BRL', 'USD', 'EUR', 'GBP']).default('BRL'),
@@ -54,7 +55,7 @@ export async function tripsRoutes(app: FastifyInstance) {
         const { activeWorkspace } = request;
         if (!activeWorkspace) throw new ApiError('UNAUTHORIZED', 'Workspace não encontrado', 401);
 
-        const { name, destination, startDate, endDate, coverImageUrl, type, budget, defaultCurrency } = request.body;
+        const { name, destination, startDate, endDate, coverImageUrl, coverImageOffset, type, budget, defaultCurrency } = request.body;
 
         // Validation: endDate >= startDate
         if (endDate < startDate) {
@@ -87,6 +88,7 @@ export async function tripsRoutes(app: FastifyInstance) {
                     startDate,
                     endDate,
                     coverImageUrl,
+                    coverImageOffset,
                     type,
                     budget,
                     defaultCurrency,
@@ -177,6 +179,7 @@ export async function tripsRoutes(app: FastifyInstance) {
                 startDate: z.string().refine(isValidIsoDate).optional(),
                 endDate: z.string().refine(isValidIsoDate).optional(),
                 coverImageUrl: z.string().optional(),
+                coverImageOffset: z.number().min(0).max(100).optional().nullable(),
                 type: z.string().optional(),
                 budget: z.number().min(0).optional().nullable(),
                 defaultCurrency: z.enum(['BRL', 'USD', 'EUR', 'GBP']).optional(),
@@ -206,7 +209,7 @@ export async function tripsRoutes(app: FastifyInstance) {
             await requireRole(app, id, request.dbUser?.id, 'editor');
         }
 
-        const { startDate, endDate, name, destination, coverImageUrl, type, budget, defaultCurrency } = request.body;
+        const { startDate, endDate, name, destination, coverImageUrl, coverImageOffset, type, budget, defaultCurrency } = request.body;
 
         // Validation: endDate >= startDate (considering updates)
         const effectiveStart = startDate || oldTrip.startDate;
@@ -229,6 +232,7 @@ export async function tripsRoutes(app: FastifyInstance) {
                 startDate,
                 endDate,
                 coverImageUrl,
+                coverImageOffset,
                 type,
                 budget,
                 defaultCurrency

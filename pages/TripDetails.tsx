@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { handleApiError } from '../services/handleApiError';
 import { TripUI, ItineraryDay, Activity, Reservation, RouteName, ReservationType, ReservationStatus, ChecklistItem, Participant, Stay, Expense } from '../types';
 import { Button, Modal, Badge, EmptyState, useToast } from '../components/UI';
-import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2, Check, List, Users, Wallet, Activity as ActivityIcon } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, DollarSign, Plus, MoveUp, MoveDown, Plane, Hotel, FileText, Car, Train, Bus, Utensils, Flag, Box, Edit2, Trash2, XCircle, Image as ImageIcon, X, Loader2, Check, List, Users, Wallet, Activity as ActivityIcon, MoveVertical } from 'lucide-react';
 
 const TRIP_TYPES = [
     { value: 'lazer', label: 'Lazer', emoji: '🏖️', color: 'bg-blue-100 text-blue-700' },
@@ -38,11 +38,27 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     const [overviewData, setOverviewData] = useState<{ participants: Participant[], balances: any, expenses: Expense[] } | null>(null);
     const [overviewLoading, setOverviewLoading] = useState(false);
 
+    // Cover Image Repositioning State
+    const [isRepositioningCover, setIsRepositioningCover] = useState(false);
+    const [previewOffset, setPreviewOffset] = useState(50);
+
     // Modals
     const [modalOpen, setModalOpen] = useState<'activity' | 'reservation' | 'delete-res' | 'edit-trip' | 'stay' | 'delete-stay' | 'delete-activity' | null>(null);
 
     // State for Edit Trip Form
-    const [editTripForm, setEditTripForm] = useState({ name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', type: 'lazer', budget: null as number | null, defaultCurrency: 'BRL' });
+    const [editTripForm, setEditTripForm] = useState<{
+        name: string;
+        destination: string;
+        startDate: string;
+        endDate: string;
+        coverImageUrl: string;
+        coverImageOffset?: number;
+        type: string;
+        budget: number | null;
+        defaultCurrency: string;
+    }>({
+        name: '', destination: '', startDate: '', endDate: '', coverImageUrl: '', coverImageOffset: 50, type: 'lazer', budget: null, defaultCurrency: 'BRL'
+    });
     const [editFormError, setEditFormError] = useState<string | null>(null);
 
     // State for Reservation Form
@@ -154,6 +170,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
             startDate: data.trip.startDate,
             endDate: data.trip.endDate,
             coverImageUrl: data.trip.coverImageUrl || '',
+            coverImageOffset: data.trip.coverImageOffset ?? 50,
             type: data.trip.type || 'lazer',
             budget: data.trip.budget ?? null,
             defaultCurrency: data.trip.defaultCurrency || 'BRL'
@@ -226,7 +243,21 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
         }
     };
 
+    const handleSaveCoverOffset = async () => {
+        if (!data) return;
+        try {
+            await api.updateTrip(data.trip.id, { coverImageOffset: previewOffset });
+            setIsRepositioningCover(false);
+            fetchData(data.trip.id);
+            toast({ message: 'Posição da capa salva!', type: 'success' });
+        } catch (err: any) {
+            toast({ message: handleApiError(err).message, type: 'error' });
+        }
+    };
 
+    const handleCancelCoverOffset = () => {
+        setIsRepositioningCover(false);
+    };
 
     // --- STAY HANDLERS ---
     const handleNewStay = () => {
@@ -634,11 +665,55 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
     return (
         <div className="pb-20 md:pb-8">
             {/* Header */}
-            <div className="relative h-56 md:h-64 bg-gray-900 overflow-hidden">
+            <div className="relative h-56 md:h-64 bg-gray-900 overflow-hidden group">
                 {trip.coverImageUrl ? (
                     <>
-                        <img src={trip.coverImageUrl} alt={trip.name} className="absolute inset-0 w-full h-full object-cover opacity-80" />
+                        <img
+                            src={trip.coverImageUrl}
+                            alt={trip.name}
+                            className="absolute inset-0 w-full h-full object-cover opacity-80"
+                            style={{ objectPosition: `center ${isRepositioningCover ? previewOffset : (trip.coverImageOffset ?? 50)}%` }}
+                        />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
+                        {/* Repositioning Overlay */}
+                        {isRepositioningCover ? (
+                            <div className="absolute inset-0 z-20 bg-black/50 flex flex-col items-center justify-center backdrop-blur-sm p-4">
+                                <span className="mb-4 text-white font-medium bg-black/50 px-3 py-1.5 rounded-full flex items-center gap-2 text-sm shadow-xl">
+                                    <MoveVertical size={16} /> Arraste para reposicionar
+                                </span>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={previewOffset}
+                                    onChange={(e) => setPreviewOffset(Number(e.target.value))}
+                                    className="w-64 max-w-[80%] accent-brand-500 mb-6"
+                                    style={{ transform: 'rotate(270deg)' }}
+                                />
+                                <div className="flex gap-3 mt-8">
+                                    <button onClick={handleCancelCoverOffset} className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl font-medium transition-colors backdrop-blur-md">
+                                        Cancelar
+                                    </button>
+                                    <button onClick={handleSaveCoverOffset} className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-brand-500/30">
+                                        Salvar Posição
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                    onClick={() => {
+                                        setPreviewOffset(trip.coverImageOffset ?? 50);
+                                        setIsRepositioningCover(true);
+                                    }}
+                                    className="bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full backdrop-blur-sm transition-colors flex items-center gap-2 px-4 shadow-lg"
+                                >
+                                    <MoveVertical size={16} />
+                                    <span className="text-sm font-medium hidden md:block">Reposicionar</span>
+                                </button>
+                            </div>
+                        )}
                     </>
                 ) : (
                     <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900" />
