@@ -1190,12 +1190,12 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     )}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Nome da Viagem</label>
-                        <input required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        <input required className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                             value={editTripForm.name} onChange={e => setEditTripForm({ ...editTripForm, name: e.target.value })} />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Destino Principal</label>
-                        <input required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        <input required className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                             value={editTripForm.destination} onChange={e => setEditTripForm({ ...editTripForm, destination: e.target.value })} />
                     </div>
                     {/* Cover Image Upload */}
@@ -1230,14 +1230,14 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     {/* URL Input (Optional Fallback) */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Ou cole uma URL</label>
-                        <input className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        <input className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                             placeholder="https://exemplo.com/imagem.jpg"
                             value={editTripForm.coverImageUrl} onChange={e => setEditTripForm({ ...editTripForm, coverImageUrl: e.target.value })} />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Moeda Padrão</label>
                         <select
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white"
                             value={editTripForm.defaultCurrency}
                             onChange={e => setEditTripForm({ ...editTripForm, defaultCurrency: e.target.value })}
                         >
@@ -1278,7 +1278,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                 type="number"
                                 min="0"
                                 step="100"
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 placeholder="Ex: 5000"
                                 value={editTripForm.budget ?? ''}
                                 onChange={e => setEditTripForm({ ...editTripForm, budget: e.target.value ? Number(e.target.value) : null })}
@@ -1289,12 +1289,12 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Início</label>
-                            <input type="date" required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            <input type="date" required className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 value={editTripForm.startDate} onChange={e => setEditTripForm({ ...editTripForm, startDate: e.target.value })} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Fim</label>
-                            <input type="date" required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            <input type="date" required className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 value={editTripForm.endDate} onChange={e => setEditTripForm({ ...editTripForm, endDate: e.target.value })} />
                         </div>
                     </div>
@@ -1311,7 +1311,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Dia</label>
                         <select
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white"
                             value={selectedDayId}
                             onChange={(e) => setSelectedDayId(e.target.value)}
                         >
@@ -1330,7 +1330,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
                         <input
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                             placeholder="Ex: Jantar no centro"
                             value={newActivity.title}
                             onChange={e => setNewActivity({ ...newActivity, title: e.target.value })}
@@ -1341,7 +1341,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             <label className="block text-sm font-medium text-gray-700 mb-1">Horário</label>
                             <input
                                 type="time"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 value={newActivity.timeStart || ''}
                                 onChange={e => setNewActivity({ ...newActivity, timeStart: e.target.value })}
                             />
@@ -1349,7 +1349,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <div className="relative">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Local</label>
                             <input
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 placeholder="Nome do local ou endereço"
                                 value={locationQuery}
                                 onChange={handleLocationChange}
@@ -1359,7 +1359,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                             />
                             {/* Dropdown de Sugestões Simplificado e Robusto */}
                             {showLocationDropdown && (
-                                <div className="mt-2 w-full overflow-hidden rounded-md border-2 border-brand-500 bg-white shadow-md z-50">
+                                <div className="mt-2 w-full overflow-hidden rounded-md border-2 border-brand-500 bg-white dark:bg-slate-900 shadow-md z-50">
                                     {!isGoogleLoaded ? (
                                         <div className="p-3 text-red-600 bg-red-50 font-bold">
                                             ⚠️ API do Google carregando ou não configurada...
@@ -1369,7 +1369,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                             ⏳ Buscando no Google...
                                         </div>
                                     ) : locationSuggestions.length === 0 ? (
-                                        <div className="p-3 text-gray-700 bg-gray-50">
+                                        <div className="p-3 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800">
                                             ❌ Nenhum local encontrado pela API.
                                         </div>
                                     ) : (
@@ -1377,13 +1377,13 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                                             {locationSuggestions.map((prediction: any, idx) => (
                                                 <div
                                                     key={prediction.place_id || idx}
-                                                    className="cursor-pointer border-b border-gray-100 p-3 hover:bg-brand-50"
+                                                    className="cursor-pointer border-b border-slate-100 dark:border-slate-800 p-3 hover:bg-brand-50 dark:hover:bg-brand-900/30"
                                                     onClick={() => handleLocationSelect(prediction)}
                                                 >
-                                                    <div className="font-semibold text-gray-900">
+                                                    <div className="font-semibold text-slate-900 dark:text-white">
                                                         {prediction.structured_formatting.main_text}
                                                     </div>
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="text-xs text-slate-500 dark:text-slate-400">
                                                         {prediction.structured_formatting.secondary_text}
                                                     </div>
                                                 </div>
@@ -1415,7 +1415,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
                             <select
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                                className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white"
                                 value={reservationForm.type}
                                 onChange={e => setReservationForm({ ...reservationForm, type: e.target.value as ReservationType })}
                             >
@@ -1432,7 +1432,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                             <select
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                                className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white"
                                 value={reservationForm.status}
                                 onChange={e => setReservationForm({ ...reservationForm, status: e.target.value as ReservationStatus })}
                             >
@@ -1446,18 +1446,18 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     {/* Title & Provider */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
-                        <input required placeholder="Ex: Voo para Londres" className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        <input required placeholder="Ex: Voo para Londres" className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                             value={reservationForm.title} onChange={e => setReservationForm({ ...reservationForm, title: e.target.value })} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Provedor</label>
-                            <input placeholder="Ex: Latam" className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            <input placeholder="Ex: Latam" className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 value={reservationForm.provider || ''} onChange={e => setReservationForm({ ...reservationForm, provider: e.target.value })} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Cód. Confirmação</label>
-                            <input placeholder="Ex: XY99Z" className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            <input placeholder="Ex: XY99Z" className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 value={reservationForm.confirmationCode || ''} onChange={e => setReservationForm({ ...reservationForm, confirmationCode: e.target.value })} />
                         </div>
                     </div>
@@ -1466,12 +1466,12 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Início (Obrigatório)</label>
-                            <input type="datetime-local" required className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            <input type="datetime-local" required className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 value={reservationForm.startDateTime} onChange={e => setReservationForm({ ...reservationForm, startDateTime: e.target.value })} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Fim</label>
-                            <input type="datetime-local" className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            <input type="datetime-local" className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 value={reservationForm.endDateTime || ''} onChange={e => setReservationForm({ ...reservationForm, endDateTime: e.target.value })} />
                         </div>
                     </div>
@@ -1480,7 +1480,7 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Moeda</label>
-                            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                            <select className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white"
                                 value={reservationForm.currency} onChange={e => setReservationForm({ ...reservationForm, currency: e.target.value })}>
                                 <option value="BRL">BRL</option>
                                 <option value="USD">USD</option>
@@ -1490,14 +1490,14 @@ export const TripDetails: React.FC<TripDetailsProps> = ({ tripId, initialTab, on
                         </div>
                         <div className="col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Valor</label>
-                            <input type="number" step="0.01" className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                            <input type="number" step="0.01" className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400"
                                 value={reservationForm.price || ''} onChange={e => setReservationForm({ ...reservationForm, price: Number(e.target.value) })} />
                         </div>
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
-                        <input className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Local ou endereço completo"
+                        <input className="w-full px-3 py-2 border border-slate-300 rounded-lg dark:bg-slate-900 dark:border-slate-700 text-slate-900 dark:text-white dark:placeholder-slate-400" placeholder="Local ou endereço completo"
                             value={reservationForm.address || ''} onChange={e => setReservationForm({ ...reservationForm, address: e.target.value })} />
                     </div>
 

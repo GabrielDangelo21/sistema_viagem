@@ -104,9 +104,9 @@ const DayActivityList = ({ dayId, acts, onEdit, onDelete }: any) => {
     );
 };
 
-const TimelineView = ({ days, activities, onEdit, onDelete }: any) => {
+const TimelineView = ({ days, activities, stays, onEdit, onDelete }: any) => {
     // Flatten and sort absolutely everything by date and time
-    const timelineItems = days.flatMap((day: any) => {
+    const activityItems = days.flatMap((day: any) => {
         const dayActs = activities.filter((a: any) => a.dayId === day.id);
         return dayActs.map((act: any) => ({
             ...act,
@@ -114,7 +114,39 @@ const TimelineView = ({ days, activities, onEdit, onDelete }: any) => {
             sortTime: act.timeStart || '24:00',
             dayTitle: day.title
         }));
-    }).sort((a: any, b: any) => {
+    });
+
+    const stayItems: any[] = [];
+    if (stays && stays.length > 0) {
+        stays.forEach((stay: any) => {
+            if (stay.startDate) {
+                stayItems.push({
+                    id: `stay-in-${stay.id}`,
+                    isStay: true,
+                    type: 'check-in',
+                    title: `Check-in: ${stay.name}`,
+                    locationName: stay.address || 'Local da estadia',
+                    parsedDate: stay.startDate.substring(0, 10),
+                    sortTime: stay.startDate.length > 10 ? stay.startDate.substring(11, 16) : '14:00',
+                    stayRef: stay
+                });
+            }
+            if (stay.endDate) {
+                stayItems.push({
+                    id: `stay-out-${stay.id}`,
+                    isStay: true,
+                    type: 'check-out',
+                    title: `Check-out: ${stay.name}`,
+                    locationName: stay.address || 'Local da estadia',
+                    parsedDate: stay.endDate.substring(0, 10),
+                    sortTime: stay.endDate.length > 10 ? stay.endDate.substring(11, 16) : '10:00',
+                    stayRef: stay
+                });
+            }
+        });
+    }
+
+    const timelineItems = [...activityItems, ...stayItems].sort((a: any, b: any) => {
         const dateDiff = a.parsedDate.localeCompare(b.parsedDate);
         if (dateDiff !== 0) return dateDiff;
         return a.sortTime.localeCompare(b.sortTime);
@@ -151,11 +183,12 @@ const TimelineView = ({ days, activities, onEdit, onDelete }: any) => {
                         )}
                         <div className="relative pl-8 md:pl-12 group">
                             {/* Connector Node */}
-                            <div className="absolute -left-[5px] top-4 w-2 h-2 rounded-full bg-brand-300 dark:bg-brand-600 group-hover:bg-brand-500 group-hover:scale-150 transition-all" />
+                            <div className={`absolute -left-[5px] top-4 w-2 h-2 rounded-full ${act.isStay ? 'bg-indigo-400 dark:bg-indigo-500 group-hover:bg-indigo-600' : 'bg-brand-300 dark:bg-brand-600 group-hover:bg-brand-500'} group-hover:scale-150 transition-all`} />
 
-                            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm hover:border-brand-300 dark:hover:border-brand-700/50 transition-colors flex flex-col md:flex-row gap-4">
-                                <div className="text-sm font-bold text-brand-600 dark:text-brand-400 w-16 md:border-r border-slate-100 dark:border-slate-800 md:pr-4 flex items-center md:justify-center">
-                                    {act.timeStart || 'S/ Hora'}
+                            <div className={`bg-white dark:bg-slate-900 p-4 rounded-xl border ${act.isStay ? 'border-indigo-100 dark:border-indigo-900/50 shadow-md bg-indigo-50/30 dark:bg-indigo-900/10 hover:border-indigo-300 dark:hover:border-indigo-700/50' : 'border-slate-100 dark:border-slate-800 shadow-sm hover:border-brand-300 dark:hover:border-brand-700/50'} transition-colors flex flex-col md:flex-row gap-4`}>
+                                <div className={`text-sm font-bold ${act.isStay ? 'text-indigo-600 dark:text-indigo-400' : 'text-brand-600 dark:text-brand-400'} w-16 md:border-r ${act.isStay ? 'border-indigo-100 dark:border-indigo-800/50' : 'border-slate-100 dark:border-slate-800'} md:pr-4 flex flex-col items-center md:justify-center`}>
+                                    {act.isStay && <MapPin size={16} className="mb-1 opacity-70" />}
+                                    <span>{act.sortTime || 'S/ Hora'}</span>
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="font-bold text-slate-800 dark:text-white text-lg">{act.title}</h4>
@@ -177,15 +210,16 @@ const TimelineView = ({ days, activities, onEdit, onDelete }: any) => {
                                         </span>
                                     </div>
                                 )}
-
-                                <div className="flex flex-row md:flex-col gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity justify-center mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-800 md:pl-2 shrink-0">
-                                    <button onClick={() => onEdit(act)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors" title="Editar">
-                                        <Edit2 size={16} />
-                                    </button>
-                                    <button onClick={() => onDelete(act.id)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Excluir">
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
+                                {!act.isStay && (
+                                    <div className="flex flex-row md:flex-col gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity justify-center mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-800 md:pl-2 shrink-0">
+                                        <button onClick={() => onEdit(act)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors" title="Editar">
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button onClick={() => onDelete(act.id)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Excluir">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </React.Fragment>
@@ -489,6 +523,7 @@ export function ItineraryTab({ days, activities, stays, handleNewStay, handleNew
                     <TimelineView
                         days={days}
                         activities={activities}
+                        stays={stays}
                         onEdit={handleEditActivity}
                         onDelete={handleDeleteActivityClick}
                     />
